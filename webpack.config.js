@@ -5,14 +5,22 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 module.exports = [
     {
+
         mode  : 'development',
-        entry : './src/electron.js',
+        entry : ['babel-polyfill', './src/electron.js'],
         target: 'electron-main',
         module: {
             rules: [{
                 test   : /\.js$/,
                 exclude: /node_modules/,
-                use    : "babel-loader"
+                use    : {
+                    loader : "babel-loader",
+                    options: {
+                        presets: ['@babel/preset-env'],
+                        plugins: ['@babel/plugin-proposal-throw-expressions']
+                    }
+                },
+
             }, {
                 test: /\.(png|jpg|gif)$/,
                 use : "url-loader"
@@ -25,7 +33,7 @@ module.exports = [
     },
     {
         target: "electron-renderer",
-        entry : './src/main.js',
+        entry : ['babel-polyfill', './src/main.js'],
         output: {
             path    : __dirname + '/dist',
             filename: "bundle.js"
@@ -35,15 +43,21 @@ module.exports = [
                 {
                     test   : /\.js$/,
                     exclude: /node_modules/,
-                    use    : "babel-loader"
+                    use    : {
+                        loader : "babel-loader",
+                        options: {
+                            presets: ['@babel/preset-env'],
+                            plugins: ['@babel/plugin-proposal-throw-expressions']
+                        }
+                    },
                 },
                 {
                     test: /\.vue$/,
                     use : "vue-loader"
                 },
                 {
-                    test: /\.s?css$/,
-                    use : ["vue-style-loader", "style-loader", "css-loader", "sass-loader"],
+                    test   : /\.s?css$/,
+                    use    : ["vue-style-loader", "style-loader", "css-loader", "sass-loader"],
                     include: [
                         path.join(__dirname, 'src'),
                         /node_modules/
