@@ -9,7 +9,7 @@ let quitCalled = false;
 
 const gotTheLock = app.requestSingleInstanceLock();
 
-const [windowWidth, windowHeight] = [100, 650];
+const [windowWidth, windowHeight] = [500, 600];
 
 function createWindow() {
     let win = new BrowserWindow({
@@ -33,41 +33,51 @@ function createWindow() {
         myWindow.hide();
         AppService.start(app, myWindow);
     });
-    // win.openDevTools();
+    win.openDevTools();
     myWindow.on('show', function (event) {
-        win.setBounds({width: windowWidth, height: windowHeight});
+        win.setBounds({width    : windowWidth,
+                          height: windowHeight
+                      });
         AppService.stop();
     });
 
     myWindow.on('close', function (event) {
-        if (!quitCalled) {
-            if (!app.isQuiting) {
+        if (!quitCalled)
+        {
+            if (!app.isQuiting)
+            {
                 event.preventDefault();
                 myWindow.hide();
             }
             AppService.start(app, myWindow);
             return false;
-        } else {
+        } else
+        {
             return true;
         }
     });
 
-    const contextMenu = Menu.buildFromTemplate([
-                                                   {
-                                                       label: 'Settings', type: 'normal', click: () => {
-                                                           AppService.stop();
-                                                           win.show();
-                                                       }
-                                                   },
-                                                   {type: 'separator'},
-                                                   {
-                                                       label: 'Quit', type: 'normal', click: () => {
-                                                           quitCalled = true;
-                                                           AppService.stop();
-                                                           app.quit();
-                                                       }
-                                                   },
-                                               ]);
+    const contextMenu = Menu.buildFromTemplate(
+        [
+            {
+                label: 'Settings',
+                type: 'normal',
+                click: () => {
+                    AppService.stop();
+                    win.show();
+                }
+            },
+            {type: 'separator'},
+            {
+                label: 'Quit',
+                type: 'normal',
+                click: () => {
+                    quitCalled = true;
+                    AppService.stop();
+                    app.quit();
+                }
+            },
+        ]);
     tray = new Tray('./public/icons/git-branch.png');
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
@@ -84,14 +94,19 @@ function createWindow() {
     powerMonitor.on('lock-screen', () => {
         AppService.stop();
     });
+
+    myWindow.show();
 }
 
-if (!gotTheLock) {
+if (!gotTheLock)
+{
     app.quit()
-} else {
+} else
+{
     app.on('second-instance', (event, commandLine, workingDirectory) => {
         // Someone tried to run a second instance, we should focus our window.
-        if (myWindow) {
+        if (myWindow)
+        {
             if (myWindow.isMinimized()) myWindow.restore();
             myWindow.focus();
         }
