@@ -1,9 +1,16 @@
 const fs = require("fs");
+// https://github.com/steveukx
 const git = require('simple-git/promise');
 const path = require('path');
 const endOfLine = require('os').EOL;
 
 import {Repository} from "../models/Repository";
+import {TickerService} from "./TickerService";
+
+
+TickerService.subscribeToTick(() => {
+    repositories.forEach((repo) => repo.tick())
+})
 
 const repositories = [];
 
@@ -85,6 +92,9 @@ function add() {
 
 }
 
+/**
+ * @return {[]}
+ */
 function get() {
     return repositories;
 }

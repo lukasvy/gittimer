@@ -17,7 +17,7 @@ module.exports = [
                     loader : "babel-loader",
                     options: {
                         presets: ['@babel/preset-env'],
-                        plugins: ['@babel/plugin-proposal-throw-expressions']
+                        plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import']
                     }
                 },
 
@@ -47,7 +47,7 @@ module.exports = [
                         loader : "babel-loader",
                         options: {
                             presets: ['@babel/preset-env'],
-                            plugins: ['@babel/plugin-proposal-throw-expressions']
+                            plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import']
                         }
                     },
                 },

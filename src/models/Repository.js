@@ -28,6 +28,13 @@ export class Repository
 
     tick() {
         this._timeSpend++;
+        try
+        {
+            this._branches.find((branch) => branch.isCurrent()).tick();
+        } catch (e)
+        {
+            console.log(e);
+        }
     }
 
     getInitDate() {

@@ -17,7 +17,7 @@
                         {{activeBranch.getName()}}
                     </div>
                 </div>
-                <div class="item" style="float:right; font-size: 70%; font:bold;">
+                <div class="" style="float:right; font-size: 20px; font:bold;">
                     {{activeBranch.getTimeSpent() ? activeBranch.getTimeSpent() : ''}}
                 </div>
             </div>

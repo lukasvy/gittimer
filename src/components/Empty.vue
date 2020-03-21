@@ -3,7 +3,8 @@
         <br/>
         <br/>
         <br/>
-        <div class="ui placeholder segment">
+        <div class="ui bottom attached loading tab segment" v-if="loading"></div>
+        <div class="ui placeholder segment" v-if="!loading">
             <div class="ui icon header">
                 <i class="code branch icon"></i>
                 <p></p>

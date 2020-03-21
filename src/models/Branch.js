@@ -1,7 +1,10 @@
+import {humanReadableSeconds} from '~/src/services/DateTimeService';
+
 export class Branch {
     constructor(name, current) {
         this._name = name;
         this._current = current;
+        this._timeSpent = 0;
     }
 
     getName() {
@@ -12,8 +15,12 @@ export class Branch {
         return this._current;
     }
 
+    tick() {
+        this._timeSpent++;
+    }
+
     getTimeSpent() {
-        return '';
+        return humanReadableSeconds(this._timeSpent, true);
     }
 
     getLastAccess() {
