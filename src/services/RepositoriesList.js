@@ -1,6 +1,7 @@
 const fs = require("fs");
 const git = require('simple-git/promise');
 const path = require('path');
+const endOfLine = require('os').EOL;
 
 import {Repository} from "../models/Repository";
 
@@ -12,6 +13,32 @@ const repositories = [];
  */
 async function checkIsGitDir(dir) {
     return git(dir).checkIsRepo().catch(() => throw new Error(`${dir} is not a git repository`));
+}
+
+/**
+ * @param dir
+ * @return {Promise<simplegit.BranchSummary>}
+ */
+function getAllBranches(dir) {
+    return git(dir).branch();
+}
+
+/**
+ * @param dir
+ * @return {Promise<string>}
+ */
+function getRepoName(dir) {
+    return git().raw(['remote', '-v'])
+                .then(r => {
+                    let name = path.basename(dir);
+                    try
+                    {
+                        name = r.split(":")[1].match(/^([^\s])+/)[0]
+                    } catch (e)
+                    {
+                    }
+                    return name;
+                });
 }
 
 /**
@@ -30,21 +57,23 @@ async function createFromDir(dir) {
     let active = true;
     return Promise.all([
                            checkIsGitDir(dir),
-                           git(dir)
-                               .branch()
-                               .then(function (repo) {
-                                   const repoData = new Repository(path.basename(dir), active);
-                                   active = false;
-                                   repo.all.forEach((branch) => {
-                                       repoData.addBranch(
-                                           {
-                                               name   : branch,
-                                               current: repo.branches[branch].current
-                                           })
-                                   });
-                                   repositories.push(repoData);
-                                   return repoData;
-                               })
+                           Promise.all(
+                               [getAllBranches(dir), getRepoName(dir)]
+                           )
+                                  .then(data => {
+                                      const repoData = new Repository(data[1], active);
+                                      active = false;
+                                      data[0].all.forEach((branch) => {
+                                          repoData.addBranch(
+                                              {
+                                                  name   : branch,
+                                                  current: data[0].branches[branch].current
+                                              })
+                                      });
+                                      repositories.push(repoData);
+                                      return repoData;
+
+                                  })
                        ]);
 }
 

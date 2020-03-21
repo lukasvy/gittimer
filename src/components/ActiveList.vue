@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="root-container">
         <div class="ui top attached tabular menu">
             <div
                     class="item"
@@ -21,7 +21,7 @@
                     {{activeBranch.getTimeSpent() ? activeBranch.getTimeSpent() : ''}}
                 </div>
             </div>
-            <div class="ui attached middle aligned divided list huge">
+            <div class="ui attached middle aligned divided list huge item-container">
                 <div class="scrollable-content">
                     <div class="item" v-for="branch in branchesList" :key="branch.getName()">
                         <i class="ui icon code branch padded-icon"></i>
@@ -48,7 +48,6 @@
 
 <script>
     import {RepositoriesList} from "../services/RepositoriesList";
-    import {find} from 'underscore'
 
     export default {
         name   : "ActiveList",
@@ -79,6 +78,24 @@
         padding: 10px !important;
     }
 
+    .segment {
+        display: flex !important;
+        flex-direction: column;
+        height: calc(100% - 80px);
+    }
+
+    .root-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .item-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
     .text-overflow {
         white-space: nowrap;
         overflow: hidden;
@@ -86,16 +103,17 @@
     }
 
     .scrollable-content {
+        flex: 1 1 auto;
         overflow-y: scroll;
-        min-width: 200px;
-        height: 380px;
     }
 
     .scrollable-content {
         overflow-y: scroll;
+        flex: 1 1 auto;
         min-width: 200px;
-        height: 500px;
+        height: 100px;
     }
+
     .item {
         display: flex;
         flex-direction: row;
