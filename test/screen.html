@@ -6,13 +6,171 @@
     <link rel="stylesheet" href="../node_modules/semantic-ui-css/semantic.css"/>
     <style>
         i.padded-icon {
-            padding: 10px!important;
+            padding: 10px !important;
+        }
+
+        .text-overflow {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .scrollable-content {
+            overflow-y: scroll;
+            min-width: 200px;
+            height: 380px;
+        }
+
+        .scrollable-content {
+            overflow-y: scroll;
+            min-width: 200px;
+            height: 500px;
+        }
+        .item {
+            display: flex;
+            flex-direction: row;
+            padding-top: 15px;
+        }
+
+        .content {
+            padding-left: 20px;
+            min-width: 0px;
+            line-height: 1.2em;
         }
     </style>
 </head>
 <body>
 <div class="ui container">
+    <div class="ui top attached tabular menu">
+        <div class="active item">lukasvy / gittimer</div>
+        <div class="item">(Add new ...)</div>
+    </div>
+    <div class="ui bottom attached active tab segment">
+        <div class="ui success icon message">
+            <i class="play icon"></i>
+            <div class="content">
+                <div class="header">
+                    bug/another-stuff-to-make
+                </div>
+            </div>
+            <div class="item" style="float:right; font-size: 70%; font:bold;">04:34</div>
+        </div>
 
+        <div class="ui attached middle aligned divided list huge item-container">
+            <div class="outer-div">
+                <div class="overflow-containter">
+                    <div class="scrollable-content">
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header text-overflow">
+                                    bug/stufftomakestufftomakestufftomakestufftomakestufftomakestufftomakestufftomakestufftomake
+                                </div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">bug/stuff-to-make</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                        <div class="item">
+                            <i class="ui icon code branch padded-icon"></i>
+                            <div class="content">
+                                <div class="header">feature/new-super-feature</div>
+                                <small>Time spent : 2h 2m</small> |
+                                <small>Last access : 2020-03-15 11:15:00</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>
