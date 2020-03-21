@@ -7,7 +7,7 @@ module.exports = [
     {
 
         mode  : 'development',
-        entry : ['babel-polyfill', './src/electron.js'],
+        entry : ['@babel/polyfill', './src/electron.js'],
         target: 'electron-main',
         module: {
             rules: [{
@@ -33,7 +33,7 @@ module.exports = [
     },
     {
         target: "electron-renderer",
-        entry : ['babel-polyfill', './src/main.js'],
+        entry : ['@babel/polyfill', './src/main.js'],
         output: {
             path    : __dirname + '/dist',
             filename: "bundle.js"

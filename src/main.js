@@ -5,6 +5,7 @@ import {Routes} from './routes'
 import VueElectron from 'vue-electron';
 import VueRouter from 'vue-router';
 import Transitions from 'vue2-transitions';
+import "@babel/polyfill";
 
 Vue.use(Transitions);
 Vue.use(VueElectron);
