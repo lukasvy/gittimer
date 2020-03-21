@@ -1,15 +1,17 @@
+import {TickerService} from "./TickerService";
 
 /**
  *
  */
 function stop()
 {
+    TickerService.pause();
 }
 
 
 function restart()
 {
-
+    TickerService.start();
 }
 
 /**
@@ -18,7 +20,7 @@ function restart()
  */
 function start(electronApp, window)
 {
-
+    TickerService.start();
 }
 
 export const AppService = {

@@ -3,16 +3,51 @@ const fs = require("fs");
 const git = require('simple-git/promise');
 const path = require('path');
 const endOfLine = require('os').EOL;
+const {dialog} = require('electron').remote;
 
 import {Repository} from "../models/Repository";
 import {TickerService} from "./TickerService";
 
-
-TickerService.subscribeToTick(() => {
-    repositories.forEach((repo) => repo.tick())
-})
+let tick = 0;
 
 const repositories = [];
+const subscriptions = {
+    'switchBranch': []
+};
+
+TickerService.subscribeToTick(() => {
+    repositories.forEach((repo) => repo.tick());
+    tick++;
+    if (tick === 5)
+    {
+        tick = 0;
+        checkReposForChanges()
+    }
+});
+
+function switchActiveBranch(repo, toBranchName) {
+    if (repo.getCurrentBranch().getName() !== toBranchName)
+    {
+        if (!repo.getBranchByName(toBranchName))
+        {
+            repo.addBranch({
+                               name   : toBranchName,
+                               current: false
+                           });
+        }
+        repo.switchCurrentBranchByName(toBranchName);
+        subscriptions['switchBranch'].forEach(call => call(toBranchName));
+    }
+}
+
+function checkReposForChanges() {
+    repositories.forEach((repo) => {
+        git(repo.getDir())
+            .status()
+            .then(stat => switchActiveBranch(repo, stat.current))
+            .catch(e => dialog.showErrorBox('Uh Oh!', e.message))
+    });
+}
 
 /**
  * @param dir
@@ -68,7 +103,7 @@ async function createFromDir(dir) {
                                [getAllBranches(dir), getRepoName(dir)]
                            )
                                   .then(data => {
-                                      const repoData = new Repository(data[1], active);
+                                      const repoData = new Repository(data[1], active, dir);
                                       active = false;
                                       data[0].all.forEach((branch) => {
                                           repoData.addBranch(
@@ -88,9 +123,6 @@ function createFromData() {
 
 }
 
-function add() {
-
-}
 
 /**
  * @return {[]}
@@ -99,9 +131,28 @@ function get() {
     return repositories;
 }
 
+function subscribe(type, call) {
+    if (subscriptions[type] && subscriptions[type].lastIndexOf(call) < 0)
+    {
+        subscriptions[type].push(call)
+    }
+}
+
+function unsubscribe(type, call) {
+    if (subscriptions[type])
+    {
+        const index = subscriptions[type].lastIndexOf(call);
+        if (index > -1)
+        {
+            subscriptions[type].splice(index, 1);
+        }
+    }
+}
+
 export const RepositoriesList = {
     createFromDir,
     createFromData,
-    add,
+    subscribe,
+    unsubscribe,
     get
 };

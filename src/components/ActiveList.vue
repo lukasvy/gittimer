@@ -17,8 +17,8 @@
                         {{activeBranch.getName()}}
                     </div>
                 </div>
-                <div class="" style="float:right; font-size: 20px; font:bold;">
-                    {{activeBranch.getTimeSpent() ? activeBranch.getTimeSpent() : ''}}
+                <div class="time-spent" style="float:right; font-size: 20px; font:bold;">
+                    {{activeBranch.getFormattedTimeSpent() ? activeBranch.getFormattedTimeSpent() : ''}}
                 </div>
             </div>
             <div class="ui attached middle aligned divided list huge item-container">
@@ -27,13 +27,18 @@
                         <i class="ui icon code branch padded-icon"></i>
                         <div class="content">
                             <div class="header text-overflow">{{branch.getName()}}</div>
-                            <template v-if="branch.getTimeSpent()">
-                                <small>
-                                    {{branch.getTimeSpent() ? 'Time spent : '+ branch.getTimeSpent() : ''}}
-                                </small> |
-                                <small>
-                                    {{branch.getLastAccess() ? 'Last access : '+ branch.getLastAccess() : ''}}
-                                </small>
+                            <template v-if="branch.getFormattedTimeSpent()">
+                                <div class="time-spent">
+                                    <small>
+                                        {{branch.getFormattedTimeSpent() ? 'Time spent : '+
+                                        branch.getFormattedTimeSpent() :
+                                        ''}}
+                                    </small> |
+                                    <small>
+                                        {{branch.getFormattedLastAccess() ? 'Last access : '+
+                                        branch.getFormattedLastAccess() : ''}}
+                                    </small>
+                                </div>
                             </template>
                             <template v-if="!branch.getTimeSpent()">
                                 <small>no time recorder yet</small>
@@ -63,12 +68,23 @@
             activateRepo() {
                 this.activeRepo = this.repoList.find(part => part.isActive());
                 this.activeBranch = this.activeRepo.getBranches().find(part => part.isCurrent());
-                this.branchesList = this.activeRepo.getBranches().filter(part => !part.isCurrent());
+                this.branchesList = this.activeRepo.getBranches().filter(part => !part.isCurrent())
+                                        .sort((a, b) => {
+                                            if (!b.getLastAccess() && a.getLastAccess())
+                                            {
+                                                return -1;
+                                            }
+                                            return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
+                                        });
             }
         },
         created() {
+            RepositoriesList.subscribe('switchBranch', this.activateRepo);
             this.repoList = RepositoriesList.get();
             this.activateRepo();
+        },
+        destroyed() {
+            RepositoriesList.unsubscribe('switchBranch', this.activateRepo);
         }
     }
 </script>
@@ -76,6 +92,16 @@
 <style scoped>
     i.padded-icon {
         padding: 10px !important;
+    }
+
+    .time-spent {
+        font-size: 15px;
+    }
+
+    .header {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .segment {

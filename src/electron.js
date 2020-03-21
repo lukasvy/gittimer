@@ -1,7 +1,8 @@
 'use strict';
 
+import {AppService} from "./services/AppService";
+
 const {app, BrowserWindow, Tray, Menu, powerMonitor} = require('electron');
-import {AppService} from './services/AppService';
 
 let tray = null;
 let myWindow = null;
@@ -25,20 +26,19 @@ function createWindow() {
                                     icon          : __dirname + '/public/icons/git-branch.ico'
                                 });
 
+
     win.removeMenu();
     myWindow = win;
     win.loadFile('index.html');
     myWindow.on('minimize', function (event) {
         event.preventDefault();
         myWindow.hide();
-        AppService.start(app, myWindow);
     });
     win.openDevTools();
     myWindow.on('show', function (event) {
         win.setBounds({width    : windowWidth,
                           height: windowHeight
                       });
-        AppService.stop();
     });
 
     myWindow.on('close', function (event) {
@@ -49,7 +49,6 @@ function createWindow() {
                 event.preventDefault();
                 myWindow.hide();
             }
-            AppService.start(app, myWindow);
             return false;
         } else
         {
@@ -59,21 +58,19 @@ function createWindow() {
 
     const contextMenu = Menu.buildFromTemplate(
         [
-            {
-                label: 'Settings',
-                type: 'normal',
-                click: () => {
-                    AppService.stop();
-                    win.show();
-                }
-            },
+            // {
+            //     label: 'Settings',
+            //     type: 'normal',
+            //     click: () => {
+            //         win.show();
+            //     }
+            // },
             {type: 'separator'},
             {
                 label: 'Quit',
                 type: 'normal',
                 click: () => {
                     quitCalled = true;
-                    AppService.stop();
                     app.quit();
                 }
             },
@@ -82,17 +79,23 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        AppService.stop();
         win.show();
     });
-    AppService.start(app, myWindow);
+
+    powerMonitor.on('resuming', () => {
+        myWindow.webContents.send('resuming');
+    });
 
     powerMonitor.on('unlock-screen', () => {
-        AppService.start();
+        myWindow.webContents.send('unlock-screen');
+    });
+
+    powerMonitor.on('suspend', () => {
+        myWindow.webContents.send('suspend');
     });
 
     powerMonitor.on('lock-screen', () => {
-        AppService.stop();
+        myWindow.webContents.send('lock-screen');
     });
 
     myWindow.show();

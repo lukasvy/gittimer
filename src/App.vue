@@ -5,12 +5,18 @@
 </template>
 
 <script>
-    import {TickerService} from "./services/TickerService";
+    import {AppService} from "./services/AppService";
+    const {ipcRenderer} = require('electron');
 
     export default {
         name: "App",
         created() {
-            TickerService.start();
+
+            ipcRenderer.on('suspend', () => AppService.stop());
+            ipcRenderer.on('lock-screen', () => AppService.stop());
+            ipcRenderer.on('unlock-screen', () => AppService.start());
+            ipcRenderer.on('resuming', () => AppService.start());
+            AppService.start();
             this.$router.push('nothing');
         }
     }
@@ -18,6 +24,6 @@
 
 <style scoped>
     .container {
-        height : 100%;
+        height: 100%;
     }
 </style>
