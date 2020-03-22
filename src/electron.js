@@ -1,7 +1,6 @@
 'use strict';
 
-import {AppService} from "./services/AppService";
-
+const Positioner = require('electron-positioner');
 const {app, BrowserWindow, Tray, Menu, powerMonitor} = require('electron');
 
 let tray = null;
@@ -10,35 +9,86 @@ let quitCalled = false;
 
 const gotTheLock = app.requestSingleInstanceLock();
 
-const [windowWidth, windowHeight] = [500, 600];
+const [windowWidth, windowHeight] = [350, 400];
 
 function createWindow() {
     let win = new BrowserWindow({
                                     width         : windowWidth,
                                     height        : windowHeight,
                                     show          : false,
-                                    maximizable   : false,
-                                    resizable     : false,
-                                    center        : true,
+                                    movable       : false,
+                                    closable      : false,
+                                    skipTaskbar   : true,
+                                    frame         : false,
+                                    alwaysOnTop   : true,
+                                    opacity       : 0,
+                                    hasShadow     : false,
+                                    transparent   : true,
+                                    titleBarStyle : 'hidden',
                                     webPreferences: {
                                         nodeIntegration: true
                                     },
                                     icon          : __dirname + '/public/icons/git-branch.ico'
                                 });
+    win.removeMenu();
+
+    function showWindow(browserWindow, tray) {
+        let positioner = new Positioner(browserWindow);
+        const trayPos = tray.getBounds();
+        let windowPosition = '';
+        let addX = 0;
+        let addY = 0;
+        if (trayPos.x > 300)
+        {
+            if (trayPos.y > 300)
+            {
+                windowPosition = 'trayBottomCenter';
+            } else
+            {
+                windowPosition = 'trayCenter';
+            }
+        } else
+        {
+            if (trayPos.y > 300)
+            {
+                windowPosition = 'trayBottomLeft';
+                addX += trayPos.width;
+            } else
+            {
+                windowPosition = 'trayCenter';
+            }
+        }
+
+
+        let {x, y} = positioner.calculate(windowPosition, trayPos);
+        browserWindow.setPosition(Math.round(x + addX), Math.round(y + addY));
+        browserWindow.show();
+    }
 
 
     win.removeMenu();
     myWindow = win;
-    win.loadFile('index.html');
+    myWindow.loadFile('index.html');
     myWindow.on('minimize', function (event) {
         event.preventDefault();
         myWindow.hide();
     });
-    win.openDevTools();
+
+    myWindow.on('show', () => {
+        setTimeout(() => {
+            myWindow.setOpacity(1);
+        }, 200);
+    });
+    myWindow.on('hide', () => {
+        myWindow.setOpacity(0);
+    });
+
+    // win.openDevTools();
     myWindow.on('show', function (event) {
-        win.setBounds({width    : windowWidth,
-                          height: windowHeight
-                      });
+        myWindow.setBounds({
+                               width : windowWidth,
+                               height: windowHeight
+                           });
     });
 
     myWindow.on('close', function (event) {
@@ -58,20 +108,12 @@ function createWindow() {
 
     const contextMenu = Menu.buildFromTemplate(
         [
-            // {
-            //     label: 'Settings',
-            //     type: 'normal',
-            //     click: () => {
-            //         win.show();
-            //     }
-            // },
-            {type: 'separator'},
             {
                 label: 'Quit',
-                type: 'normal',
+                type : 'normal',
                 click: () => {
                     quitCalled = true;
-                    app.quit();
+                    app.exit(0)
                 }
             },
         ]);
@@ -79,7 +121,7 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        win.show();
+        showWindow(myWindow, tray);
     });
 
     powerMonitor.on('resuming', () => {
@@ -98,7 +140,7 @@ function createWindow() {
         myWindow.webContents.send('lock-screen');
     });
 
-    myWindow.show();
+    showWindow(myWindow, tray);
 }
 
 if (!gotTheLock)
