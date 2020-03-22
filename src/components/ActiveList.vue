@@ -21,7 +21,7 @@
                     {{activeBranch.getFormattedTimeSpent() ? activeBranch.getFormattedTimeSpent() : ''}}
                 </div>
             </div>
-            <div class="ui attached middle aligned divided list huge item-container">
+            <div class="ui attached middle aligned divided list big item-container">
                 <div class="scrollable-content">
                     <div class="item" v-for="branch in branchesList" :key="branch.getName()">
                         <i class="ui icon code branch padded-icon"></i>
