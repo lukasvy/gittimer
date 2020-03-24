@@ -1,7 +1,8 @@
 import {humanReadableSeconds} from '~/src/services/DateTimeService';
 import * as moment from 'moment';
 
-export class Branch {
+export class Branch
+{
     constructor(name, current) {
         this._name = name;
         this._current = current;
@@ -13,10 +14,22 @@ export class Branch {
         return this._name;
     }
 
+    setLastAccessed(value) {
+        this._lastAccessed = value;
+        return this;
+    }
+
+    setTimeSpent(value) {
+        this._timeSpent = value;
+        return this;
+    }
+
     setIsCurrent(value) {
-        if (value) {
+        if (value)
+        {
             this._current = true;
-        } else {
+        } else
+        {
             this._lastAccessed = new Date();
             this._current = false;
         }
@@ -44,5 +57,20 @@ export class Branch {
 
     getFormattedLastAccess() {
         return this._lastAccessed ? moment(this._lastAccessed).format('YYYY-MM-DD HH:mm:ss') : '';
+    }
+
+    serialize() {
+        return {
+            timeSpent   : this._timeSpent,
+            lastAccessed: this._lastAccessed,
+            current     : this._current,
+            name        : this._name
+        }
+    }
+
+    static unserialize(data) {
+        return new Branch(data.name, data.current)
+            .setLastAccessed(data.lastAccessed)
+            .setTimeSpent(data.timeSpent)
     }
 }

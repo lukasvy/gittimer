@@ -1,9 +1,11 @@
 const fs = require("fs");
-// https://github.com/steveukx
+// https://github.com/steveukx/git-js
 const git = require('simple-git/promise');
 const path = require('path');
-const endOfLine = require('os').EOL;
 const {dialog} = require('electron').remote;
+const Store = require('electron-store');
+
+const store = new Store();
 
 import {Repository} from "../models/Repository";
 import {TickerService} from "./TickerService";
@@ -12,16 +14,18 @@ let tick = 0;
 
 const repositories = [];
 const subscriptions = {
-    'switchBranch': []
+    'switchBranch': [],
+    'dataRefresh' : []
 };
 
 TickerService.subscribeToTick(() => {
-    repositories.forEach((repo) => repo.tick());
+    get().forEach((repo) => repo.tick());
     tick++;
     if (tick === 5)
     {
         tick = 0;
-        checkReposForChanges()
+        checkReposForChanges();
+        storeData();
     }
 });
 
@@ -40,12 +44,40 @@ function switchActiveBranch(repo, toBranchName) {
     }
 }
 
+function commitChanges(latestLog) {
+
+}
+
+function getLogs(dir) {
+    return git(dir)
+        .log()
+        .catch(e => repoError(get().find(repo => repo.getDir() === dir), e));
+}
+
+function deleteRepo(repo) {
+    const index = repositories.findIndex(repo);
+    if (index > -1) {
+        repositories.splice(index, 1);
+    }
+}
+
+function repoError(repo, error) {
+    if (repo)
+    {
+        deleteRepo(repo);
+        storeData();
+    }
+    dialog.showErrorBox('Uh Oh!', error.message)
+}
+
 function checkReposForChanges() {
-    repositories.forEach((repo) => {
+    get().forEach((repo) => {
         git(repo.getDir())
             .status()
             .then(stat => switchActiveBranch(repo, stat.current))
-            .catch(e => dialog.showErrorBox('Uh Oh!', e.message))
+            .catch(e => repoError(repo, e));
+        getLogs(repo.getDir())
+            .then(log => commitChanges(log.latest));
     });
 }
 
@@ -100,10 +132,12 @@ async function createFromDir(dir) {
     return Promise.all([
                            checkIsGitDir(dir),
                            Promise.all(
-                               [getAllBranches(dir), getRepoName(dir)]
+                               [getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
                                   .then(data => {
-                                      const repoData = new Repository(data[1], active, dir);
+                                      const repoData = new Repository(data[1], dir)
+                                          .setLatestCommit(data[2].latest)
+                                          .setIsActive(active);
                                       active = false;
                                       data[0].all.forEach((branch) => {
                                           repoData.addBranch(
@@ -112,7 +146,7 @@ async function createFromDir(dir) {
                                                   current: data[0].branches[branch].current
                                               })
                                       });
-                                      repositories.push(repoData);
+                                      get().push(repoData);
                                       return repoData;
 
                                   })
@@ -120,9 +154,17 @@ async function createFromDir(dir) {
 }
 
 function createFromData() {
-
+    const data = store.get('gittimer-data');
+    if (data)
+    {
+        data.map(part => Repository.unserialize(part)).forEach(part => get().push(part));
+    }
 }
 
+function storeData() {
+    store.set('gittimer-data', get().map(repo => repo.serialize()));
+    subscriptions['dataRefresh'].forEach(call => call());
+}
 
 /**
  * @return {[]}
@@ -149,10 +191,22 @@ function unsubscribe(type, call) {
     }
 }
 
+function getActiveRepo() {
+    return get().find(part => part.isActive());
+}
+
+function getActiveBranch() {
+    return (getActiveRepo() ? getActiveRepo().getBranches() : [])
+        .find(part => part.isCurrent())
+}
+
 export const RepositoriesList = {
     createFromDir,
     createFromData,
+    storeData,
     subscribe,
     unsubscribe,
+    getActiveRepo,
+    getActiveBranch,
     get
 };

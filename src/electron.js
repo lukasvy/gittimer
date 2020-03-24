@@ -17,6 +17,7 @@ function createWindow() {
                                     height        : windowHeight,
                                     show          : false,
                                     movable       : false,
+                                    resizable     : false,
                                     closable      : false,
                                     skipTaskbar   : true,
                                     frame         : false,
@@ -74,21 +75,20 @@ function createWindow() {
         myWindow.hide();
     });
 
-    myWindow.on('show', () => {
-        setTimeout(() => {
-            myWindow.setOpacity(1);
-        }, 200);
-    });
     myWindow.on('hide', () => {
         myWindow.setOpacity(0);
     });
 
-    // win.openDevTools();
+    win.openDevTools();
     myWindow.on('show', function (event) {
         myWindow.setBounds({
                                width : windowWidth,
                                height: windowHeight
                            });
+        setTimeout(() => {
+            myWindow.setOpacity(1);
+            myWindow.webContents.send('after-show');
+        }, 200);
     });
 
     myWindow.on('close', function (event) {
@@ -139,6 +139,8 @@ function createWindow() {
     powerMonitor.on('lock-screen', () => {
         myWindow.webContents.send('lock-screen');
     });
+
+    app.on('quit', () => myWindow.webContents.send('quitting'));
 
     showWindow(myWindow, tray);
 }
