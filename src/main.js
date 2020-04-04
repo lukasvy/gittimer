@@ -6,6 +6,7 @@ import VueElectron from 'vue-electron';
 import VueRouter from 'vue-router';
 import Transitions from 'vue2-transitions';
 import "@babel/polyfill";
+import 'semantic-ui-css/semantic.min.css';
 
 Vue.use(Transitions);
 Vue.use(VueElectron);

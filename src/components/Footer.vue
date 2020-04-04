@@ -3,15 +3,23 @@
         <div class="footer-left">
 <!--            <i class="file alternate outline icon"></i>-->
         </div>
-        <div class="footer-rigth">
+        <div class="footer-rigth" @click.prevent="e => settings(e)">
             <i class="cog icon"></i>
         </div>
     </div>
 </template>
 
 <script>
+    const {ipcRenderer, remote} = require('electron');
+    import {RepositoriesList} from "../services/RepositoriesList";
     export default {
-        name: "Footer"
+        name: "Footer",
+        methods : {
+            settings : function(e) {
+                RepositoriesList.removeRepo();
+                // ipcRenderer.sendSync('settingsClicked', {})
+            }
+        }
     }
 </script>
 

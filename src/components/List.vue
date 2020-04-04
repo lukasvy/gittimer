@@ -8,7 +8,7 @@
                         <div class="header text-overflow">
                             {{branch.getName()}}
                         </div>
-                        <div v-if="!branch.getFormattedTimeSpent()">
+                        <div class="time-spent" v-if="!branch.getFormattedTimeSpent()">
                             <small>No time recorder yet</small>
                         </div>
                         <div class="time-spent" v-if="branch.getFormattedTimeSpent()">
@@ -101,11 +101,11 @@
         flex-direction: column;
         width: 90%;
         line-height: 18px;
+        padding-left: 6px;
     }
 
     i.padded-icon {
-        padding: 10px !important;
-        margin-right: 15px;
+        padding-top: 5px;
     }
 
     .git-content {
