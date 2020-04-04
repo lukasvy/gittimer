@@ -9,6 +9,16 @@ Electron program that will count time spend on specific branch
 ## Author
 Lukas Vyslocky https://github.com/lukasvy
 
+## To start 
+* have the latest [NodeJs](https://nodejs.org/) installed
+* run > `npm install` to install dependency packages
+* run > `npm run start` to start application
+
+## To build 
+* have latest [NodeJs](https://nodejs.org/) installed
+* run > `npm install && npm run build`
+* new directory should be created with name 'build', in it should be portable version for windows with name `GitTimer.exe`
+
 ## License
 
 This project is under MIT.

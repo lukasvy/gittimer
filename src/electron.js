@@ -1,7 +1,8 @@
 'use strict';
 
 const Positioner = require('electron-positioner');
-const {app, BrowserWindow, Tray, Menu, powerMonitor} = require('electron');
+const {app, BrowserWindow, Tray, Menu, powerMonitor, nativeImage} = require('electron');
+const path = require("path");
 
 let tray = null;
 let myWindow = null;
@@ -29,7 +30,7 @@ function createWindow() {
                                     webPreferences: {
                                         nodeIntegration: true
                                     },
-                                    icon          : __dirname + '/public/icons/git-branch.ico'
+                                    icon          : path.join(__dirname, '..', 'public', 'icons', 'git-branch.ico')
                                 });
     win.removeMenu();
 
@@ -69,7 +70,7 @@ function createWindow() {
 
     win.removeMenu();
     myWindow = win;
-    myWindow.loadFile('index.html');
+    myWindow.loadFile(path.join(__dirname, 'index.html'));
     myWindow.on('minimize', function (event) {
         event.preventDefault();
         myWindow.hide();
@@ -78,8 +79,11 @@ function createWindow() {
     myWindow.on('hide', () => {
         myWindow.setOpacity(0);
     });
+    if (process.env.NODE_ENV === 'development')
+    {
+        win.openDevTools();
+    }
 
-    win.openDevTools();
     myWindow.on('show', function (event) {
         myWindow.setBounds({
                                width : windowWidth,
@@ -117,7 +121,10 @@ function createWindow() {
                 }
             },
         ]);
-    tray = new Tray('./public/icons/git-branch.png');
+
+
+    tray = new Tray(nativeImage.createFromPath(
+        path.join(__dirname, '..', 'public', 'icons', 'git-branch.png')));
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {

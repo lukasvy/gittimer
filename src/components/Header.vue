@@ -108,7 +108,9 @@
 
     .git-header-counter-icon {
         max-width: 35px;
-        margin-left: -3px;
+        margin-left: -5px;
+        padding-left: 4px;
+        margin-top: 6px;
     }
 
     .git-header-countdown {

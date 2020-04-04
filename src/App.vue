@@ -76,6 +76,9 @@
 </script>
 
 <style>
+    body {
+        background: rgba(0, 0, 0, 0)!important;
+    }
     .slide-enter-active,
     .slide-leave-active {
         transition: opacity 1s, transform 0.3s;
@@ -84,15 +87,10 @@
     .slide-enter,
     .slide-leave {
         opacity: 0;
-        transform: translateX(-20%);
     }
 
     .fade-leave-active {
         transition: opacity 0.200s ease-out;
-    }
-
-    .fade-leave {
-        transform: translateY(-20%);
     }
 
     .fade-enter-active {

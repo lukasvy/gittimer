@@ -5,26 +5,35 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 module.exports = [
     {
-
         mode  : 'development',
         entry : ['@babel/polyfill', './src/electron.js'],
         target: 'electron-main',
+        node  : {
+            __dirname : false,
+            __filename: false
+        },
         module: {
-            rules: [{
-                test   : /\.js$/,
-                exclude: /node_modules/,
-                use    : {
-                    loader : "babel-loader",
-                    options: {
-                        presets: ['@babel/preset-env'],
-                        plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import']
-                    }
-                },
+            rules: [
+                {
+                    test   : /\.js$/,
+                    exclude: /node_modules/,
+                    use    : {
+                        loader : "babel-loader",
+                        options: {
+                            presets: ['@babel/preset-env'],
+                            plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import']
+                        }
+                    },
 
-            }, {
-                test: /\.(png|jpg|gif)$/,
-                use : "url-loader"
-            }]
+                },
+                {
+                    test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+                    loader: 'url-loader?limit=100000'
+                },
+                {
+                    test: /\.(png|jpg|gif)$/,
+                    use : "url-loader"
+                }]
         },
         output: {
             path    : __dirname + '/dist',
@@ -34,6 +43,10 @@ module.exports = [
     {
         target: "electron-renderer",
         entry : ['@babel/polyfill', './src/main.js'],
+        node  : {
+            __dirname : false,
+            __filename: false
+        },
         output: {
             path    : __dirname + '/dist',
             filename: "bundle.js"
@@ -64,8 +77,8 @@ module.exports = [
                     ],
                 },
                 {
-                    test: /\.svg$/,
-                    use : "file-loader"
+                    test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+                    loader: 'url-loader?limit=100000'
                 }
             ]
         },

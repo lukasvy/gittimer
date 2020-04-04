@@ -48,7 +48,7 @@ function commitChanges(latestLog) {
 
 }
 
-function getLogs(dir) {
+async function getLogs(dir) {
     return git(dir)
         .log()
         .catch(e => repoError(get().find(repo => repo.getDir() === dir), e));
@@ -56,7 +56,8 @@ function getLogs(dir) {
 
 function deleteRepo(repo) {
     const index = repositories.findIndex(repo);
-    if (index > -1) {
+    if (index > -1)
+    {
         repositories.splice(index, 1);
     }
 }
@@ -86,14 +87,23 @@ function checkReposForChanges() {
  * @return {Promise<unknown>}
  */
 async function checkIsGitDir(dir) {
-    return git(dir).checkIsRepo().catch(() => throw new Error(`${dir} is not a git repository`));
+    return new Promise(($resolve, $reject) => {
+        if (fs.readdirSync(dir, {withFileTypes: true})
+              .filter(dirent => dirent.isDirectory() && dirent.name === '.git')
+            .length)
+        {
+            console.log(1);
+            return $resolve(true);
+        }
+        throw new Error(`${dir} is not a git repository`)
+    });
 }
 
 /**
  * @param dir
  * @return {Promise<simplegit.BranchSummary>}
  */
-function getAllBranches(dir) {
+async function getAllBranches(dir) {
     return git(dir).branch();
 }
 
@@ -101,18 +111,19 @@ function getAllBranches(dir) {
  * @param dir
  * @return {Promise<string>}
  */
-function getRepoName(dir) {
-    return git().raw(['remote', '-v'])
-                .then(r => {
-                    let name = path.basename(dir);
-                    try
-                    {
-                        name = r.split(":")[1].match(/^([^\s])+/)[0]
-                    } catch (e)
-                    {
-                    }
-                    return name;
-                });
+async function getRepoName(dir) {
+    return git(dir)
+        .raw(['remote', '-v'])
+        .then(r => {
+            let name = path.basename(dir);
+            try
+            {
+                name = r.split(":")[1].match(/^([^\s])+/)[0]
+            } catch (e)
+            {
+            }
+            return name;
+        });
 }
 
 /**
@@ -131,8 +142,7 @@ async function createFromDir(dir) {
     let active = true;
     return Promise.all([
                            checkIsGitDir(dir),
-                           Promise.all(
-                               [getAllBranches(dir), getRepoName(dir), getLogs(dir)]
+                           Promise.all([getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
                                   .then(data => {
                                       const repoData = new Repository(data[1], dir)
@@ -200,10 +210,16 @@ function getActiveBranch() {
         .find(part => part.isCurrent())
 }
 
+function removeRepo() {
+    repositories.splice(0, 1);
+    storeData();
+}
+
 export const RepositoriesList = {
     createFromDir,
     createFromData,
     storeData,
+    removeRepo,
     subscribe,
     unsubscribe,
     getActiveRepo,
