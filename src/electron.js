@@ -79,6 +79,7 @@ function createWindow() {
     myWindow.on('hide', () => {
         myWindow.setOpacity(0);
     });
+
     if (process.env.NODE_ENV === 'development')
     {
         win.openDevTools();

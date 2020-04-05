@@ -90,7 +90,9 @@
         flex-direction: row;
         padding-bottom: 5px;
         padding-top: 5px;
+        align-items: center;
         border-bottom: 1px solid #e2e0e0;
+        max-width: 325px;
     }
 
     .content {
@@ -105,7 +107,9 @@
     }
 
     i.padded-icon {
-        padding-top: 5px;
+        /*padding-top: 5px;*/
+        margin-top: -7px!important;
+        font-size: 1.2em!important;
     }
 
     .git-content {

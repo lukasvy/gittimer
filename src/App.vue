@@ -78,6 +78,7 @@
 <style>
     body {
         background: rgba(0, 0, 0, 0)!important;
+        overflow: hidden;
     }
     .slide-enter-active,
     .slide-leave-active {
@@ -89,17 +90,20 @@
         opacity: 0;
     }
 
-    .fade-leave-active {
-        transition: opacity 0.200s ease-out;
+    .fade-enter-active, .fade-leave-active {
+        transform:matrix(1,0,0,1,0,0);
+        opacity:1;
+        transition:transform 0.3s ease-out 0s,opacity 0.3s ease-in-out 0s;
     }
 
-    .fade-enter-active {
-        transition: opacity 0.200s ease-in;
+    .fade {
+        /*transform:matrix(1,0,0,1,0,0);*/
     }
 
     .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
     {
-        opacity: 0;
+        transform:matrix(1,0,0,1,0,35);
+        opacity:0;
     }
 
     .ui.container {
