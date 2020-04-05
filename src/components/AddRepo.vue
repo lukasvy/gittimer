@@ -17,7 +17,7 @@
 </template>
 
 <script>
-    const {dialog} = require('electron').remote;
+    import {DialogService} from '../services/DialogService';
     import {isArray} from 'underscore';
     import {RepositoriesList} from "../services/RepositoriesList";
 
@@ -31,7 +31,7 @@
         methods: {
             processDir() {
                 this.loading = true;
-                dialog.showOpenDialog({properties: ['openDirectory']})
+                DialogService.showOpenDialog({properties: ['openDirectory']})
                       .then((dir) => {
                           if (isArray(dir.filePaths) && dir.filePaths[0])
                           {
@@ -40,7 +40,7 @@
                           }
                           return dir;
                       })
-                      .catch((e) => dialog.showErrorBox('Uh Oh!', e.message))
+                      .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message))
                       .finally(() => this.loading = false);
             }
         }

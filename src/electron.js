@@ -111,6 +111,10 @@ function createWindow() {
         }
     });
 
+    myWindow.on('blur', e => {
+        myWindow.webContents.send('lost-focus');
+    });
+
     const contextMenu = Menu.buildFromTemplate(
         [
             {
@@ -129,7 +133,9 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        showWindow(myWindow, tray);
+        if (!myWindow.isVisible()) {
+            showWindow(myWindow, tray);
+        }
     });
 
     powerMonitor.on('resuming', () => {

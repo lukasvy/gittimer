@@ -55,6 +55,10 @@
                 this.shown = false;
             });
 
+            ipcRenderer.on('lost-focus', (event, arg) => {
+                AppService.hide();
+            });
+
             AppService.onBeforeHide(() => new Promise((resolve, reject) => {
                 this.shown = false;
                 setTimeout(resolve, 500);

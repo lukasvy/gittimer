@@ -7,7 +7,7 @@
                 {{activeRepo ? activeRepo.getName() : 'Git Timer'}}
             </div>
             <div class="scroll-repo-right" @click.prevent="hideWindow">
-                <i class="arrow alternate circle down icon" style="padding-left: 12px;"></i>
+                <i class="close icon" style="padding-left: 12px;"></i>
             </div>
         </div>
         <collapse-transition :delay="400">
