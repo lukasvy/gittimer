@@ -1,12 +1,12 @@
 <template>
     <div class="git-content">
         <div class="ui middle aligned divided medium">
-                <div class="ui icon header">
-                    <i class="code branch icon"></i>
-                    <p></p>
-                    <p>No git repository was found</p>
-                    <p>Please add directory with git repository</p>
-                </div>
+            <div class="ui icon header">
+                <i class="code branch icon"></i>
+                <p></p>
+                <p>No git repository was found</p>
+                <p>Please add directory with git repository</p>
+            </div>
         </div>
         <div class="ui primary button center aligned repo-button"
              @click.prevent="() => !loading && processDir()"
@@ -17,9 +17,11 @@
 </template>
 
 <script>
-    const {dialog} = require('electron').remote;
+    import {DialogService} from '../services/DialogService';
     import {isArray} from 'underscore';
     import {RepositoriesList} from "../services/RepositoriesList";
+
+    const {remote} = require('electron');
 
     export default {
         name   : "AddRepo",
@@ -31,17 +33,17 @@
         methods: {
             processDir() {
                 this.loading = true;
-                dialog.showOpenDialog({properties: ['openDirectory']})
-                      .then((dir) => {
-                          if (isArray(dir.filePaths) && dir.filePaths[0])
-                          {
-                              return RepositoriesList.createFromDir(dir.filePaths[0])
-                                                     .then(() => this.$router.push('active'))
-                          }
-                          return dir;
-                      })
-                      .catch((e) => dialog.showErrorBox('Uh Oh!', e.message))
-                      .finally(() => this.loading = false);
+                DialogService.showOpenDialog({properties: ['openDirectory']})
+                             .then((dir) => {
+                                 if (isArray(dir.filePaths) && dir.filePaths[0])
+                                 {
+                                     return RepositoriesList.createFromDir(dir.filePaths[0])
+                                                            .then(() => this.$router.push('active'))
+                                 }
+                                 return dir;
+                             })
+                             .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message))
+                             .finally(() => this.loading = false);
             }
         }
     }
@@ -49,11 +51,12 @@
 
 <style>
     .repo-button {
-        display: flex!important;
+        display: flex !important;
         align-content: center;
         text-align: center;
         justify-content: center;
     }
+
     .git-content {
         padding: 10px;
         background-color: #f4f4f4;

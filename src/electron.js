@@ -7,6 +7,8 @@ const path = require("path");
 let tray = null;
 let myWindow = null;
 let quitCalled = false;
+let showing = false;
+let hiding = false;
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -79,12 +81,14 @@ function createWindow() {
     myWindow.on('hide', () => {
         myWindow.setOpacity(0);
     });
+
     if (process.env.NODE_ENV === 'development')
     {
         win.openDevTools();
     }
 
     myWindow.on('show', function (event) {
+        showing = true;
         myWindow.setBounds({
                                width : windowWidth,
                                height: windowHeight
@@ -92,6 +96,7 @@ function createWindow() {
         setTimeout(() => {
             myWindow.setOpacity(1);
             myWindow.webContents.send('after-show');
+            showing = false;
         }, 200);
     });
 
@@ -108,6 +113,10 @@ function createWindow() {
         {
             return true;
         }
+    });
+
+    myWindow.on('blur', e => {
+        myWindow.webContents.send('lost-focus');
     });
 
     const contextMenu = Menu.buildFromTemplate(
@@ -128,7 +137,9 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        showWindow(myWindow, tray);
+        if (!myWindow.isVisible() && !showing && !hiding) {
+            showWindow(myWindow, tray);
+        }
     });
 
     powerMonitor.on('resuming', () => {

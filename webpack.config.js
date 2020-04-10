@@ -92,7 +92,9 @@ module.exports = [
 
         plugins: [
             new VueLoaderPlugin(),
-
+            new webpack.SourceMapDevToolPlugin({
+                                                   filename: "[file].map"
+                                               }),
             new webpack.NamedModulesPlugin(),
 
             new HtmlWebpackPlugin({

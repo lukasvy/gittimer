@@ -7,7 +7,7 @@
                 {{activeRepo ? activeRepo.getName() : 'Git Timer'}}
             </div>
             <div class="scroll-repo-right" @click.prevent="hideWindow">
-                <i class="arrow alternate circle down icon" style="padding-left: 12px;"></i>
+                <i class="close icon" style="padding-left: 12px;"></i>
             </div>
         </div>
         <collapse-transition :delay="400">
@@ -95,6 +95,7 @@
         padding-bottom: 5px;
         display: flex;
         flex-direction: row;
+        align-items: center;
     }
 
     .git-header-text-overflow {
@@ -110,7 +111,12 @@
         max-width: 35px;
         margin-left: -5px;
         padding-left: 4px;
-        margin-top: 6px;
+        padding-top: 10px;
+        padding-right: 5px;
+    }
+
+    i.padded-icon {
+        font-size: 1.2em!important;
     }
 
     .git-header-countdown {

@@ -1,4 +1,5 @@
 import {TickerService} from "./TickerService";
+import {DialogService} from "./DialogService";
 
 const subscriptions = {
     'onBeforeHide': []
@@ -27,6 +28,9 @@ function start(w) {
 }
 
 function hide() {
+    if (DialogService.isOpened()) {
+        return Promise.resolve();
+    }
     if (!subscriptions['onBeforeHide'].length)
     {
         return window.hide();

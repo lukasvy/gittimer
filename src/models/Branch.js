@@ -66,11 +66,23 @@ export class Branch
             current     : this._current,
             name        : this._name
         }
+
     }
 
+    /**
+     * @param data {Object}
+     */
+    fill(data) {
+        this._timeSpent = data.timeSpent;
+        this._lastAccessed = data.lastAccessed;
+        return this;
+    }
+
+    /**
+     * @param data
+     * @return {*}
+     */
     static unserialize(data) {
-        return new Branch(data.name, data.current)
-            .setLastAccessed(data.lastAccessed)
-            .setTimeSpent(data.timeSpent)
+        return new Branch(data.name, data.current).fill(data);
     }
 }
