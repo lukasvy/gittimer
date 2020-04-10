@@ -2,12 +2,14 @@ const fs = require("fs");
 // https://github.com/steveukx/git-js
 const git = require('simple-git/promise');
 const path = require('path');
-
+import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
 
 const Store = require('electron-store');
 
 const store = new Store();
+const dataRefresh = Subscription();
+const switchBranch = Subscription();
 
 import {Repository} from "../models/Repository";
 import {TickerService} from "./TickerService";
@@ -15,10 +17,6 @@ import {TickerService} from "./TickerService";
 let tick = 0;
 
 const repositories = [];
-const subscriptions = {
-    'switchBranch': [],
-    'dataRefresh' : []
-};
 
 TickerService.subscribeToTick(() => {
     get().forEach((repo) => repo.tick());
@@ -42,7 +40,7 @@ function switchActiveBranch(repo, toBranchName) {
                            });
         }
         repo.switchCurrentBranchByName(toBranchName);
-        subscriptions['switchBranch'].forEach(call => call(toBranchName));
+        switchBranch.trigger(toBranchName);
     }
 }
 
@@ -94,7 +92,6 @@ async function checkIsGitDir(dir) {
               .filter(dirent => dirent.isDirectory() && dirent.name === '.git')
             .length)
         {
-            console.log(1);
             return $resolve(true);
         }
         throw new Error(`${dir} is not a git repository`)
@@ -175,7 +172,7 @@ function createFromData() {
 
 function storeData() {
     store.set('gittimer-data', get().map(repo => repo.serialize()));
-    subscriptions['dataRefresh'].forEach(call => call());
+    dataRefresh.trigger();
 }
 
 /**
@@ -183,24 +180,6 @@ function storeData() {
  */
 function get() {
     return repositories;
-}
-
-function subscribe(type, call) {
-    if (subscriptions[type] && subscriptions[type].lastIndexOf(call) < 0)
-    {
-        subscriptions[type].push(call)
-    }
-}
-
-function unsubscribe(type, call) {
-    if (subscriptions[type])
-    {
-        const index = subscriptions[type].lastIndexOf(call);
-        if (index > -1)
-        {
-            subscriptions[type].splice(index, 1);
-        }
-    }
 }
 
 function getActiveRepo() {
@@ -221,9 +200,9 @@ export const RepositoriesList = {
     createFromDir,
     createFromData,
     storeData,
+    onDataRefresh : dataRefresh.subscribe,
+    onSwitchBranch : switchBranch.subscribe,
     removeRepo,
-    subscribe,
-    unsubscribe,
     getActiveRepo,
     getActiveBranch,
     get

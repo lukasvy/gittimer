@@ -11,18 +11,21 @@
             </div>
         </div>
         <collapse-transition :delay="400">
-        <div class="git-header-counter" v-show="activeRepo">
-            <div class="git-header-counter-icon">
-                <i class="ui icon play circle padded-icon"></i>
-            </div>
+            <div class="git-header-counter" v-show="activeRepo">
+                <div class="git-header-counter-icon">
+                    <i class="ui icon play circle padded-icon"></i>
+                </div>
 
-            <div class="git-header-text-overflow">
-                {{activeBranch ? activeBranch.getName() : ''}}
+                <div class="git-header-text-overflow">
+                    {{activeBranch ? activeBranch.getName() : ''}}
+                </div>
+                <div class="git-header-countdown">
+                    {{activeBranch && activeBranch.getFormattedTimeSpent() ? activeBranch.getFormattedTimeSpent() : ''}}
+                </div>
+                <div class="git-search-list" v-if="activeRepo && activeSearch">
+                    Search: {{activeSearch}}
+                </div>
             </div>
-            <div class="git-header-countdown">
-                {{activeBranch && activeBranch.getFormattedTimeSpent() ? activeBranch.getFormattedTimeSpent() : ''}}
-            </div>
-        </div>
         </collapse-transition>
     </div>
 </template>
@@ -31,19 +34,21 @@
     import {RepositoriesList} from "~/src/services/RepositoriesList";
     import {CollapseTransition} from 'vue2-transitions';
     import {AppService} from "~/src/services/AppService";
+    import {ListSearchService} from "~/src/services/ListSearchService";
 
     export default {
-        name   : "Header",
-        data   : function () {
+        name      : "Header",
+        data      : function () {
             return {
                 activeRepo  : undefined,
-                activeBranch: undefined
+                activeBranch: undefined,
+                activeSearch: ''
             }
         },
         components: {
             CollapseTransition
         },
-        methods: {
+        methods   : {
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
                 this.activeBranch = RepositoriesList.getActiveBranch();
@@ -52,15 +57,18 @@
                 AppService.hide();
             }
         },
-        watch: {
+        watch     : {
             '$route': 'activateRepo'
         },
         created() {
-            RepositoriesList.subscribe('switchBranch', this.activateRepo);
+            this.removeOnSwitch = RepositoriesList.onSwitchBranch(this.activateRepo);
+            this.searchSubRemove = ListSearchService.onChange(
+                () => this.activeSearch = ListSearchService.getText());
             this.activateRepo();
         },
         destroyed() {
-            RepositoriesList.unsubscribe('switchBranch', this.activateRepo);
+            this.removeOnSwitch ?  this.removeOnSwitch() : undefined;
+            this.searchSubRemove ? this.searchSubRemove() : undefined;
         }
     }
 </script>
@@ -116,12 +124,27 @@
     }
 
     i.padded-icon {
-        font-size: 1.2em!important;
+        font-size: 1.2em !important;
     }
 
     .git-header-countdown {
         flex: 1px;
         padding-top: 10px;
         text-align: right;
+    }
+
+    .git-search-list {
+        font-size: .7em;
+        background: lightgray;
+        position: absolute;
+        top: 64px;
+        left: 35px;
+        max-width: 319px;
+        line-height: 14px;
+        overflow: hidden;
+        display: inline-block;
+        white-space: nowrap;
+        border: 1px #c6c6c6 solid;
+        padding: 1px;
     }
 </style>
