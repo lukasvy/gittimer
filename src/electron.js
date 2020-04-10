@@ -7,6 +7,8 @@ const path = require("path");
 let tray = null;
 let myWindow = null;
 let quitCalled = false;
+let showing = false;
+let hiding = false;
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -86,6 +88,7 @@ function createWindow() {
     }
 
     myWindow.on('show', function (event) {
+        showing = true;
         myWindow.setBounds({
                                width : windowWidth,
                                height: windowHeight
@@ -93,6 +96,7 @@ function createWindow() {
         setTimeout(() => {
             myWindow.setOpacity(1);
             myWindow.webContents.send('after-show');
+            showing = false;
         }, 200);
     });
 
@@ -133,7 +137,7 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        if (!myWindow.isVisible()) {
+        if (!myWindow.isVisible() && !showing && !hiding) {
             showWindow(myWindow, tray);
         }
     });

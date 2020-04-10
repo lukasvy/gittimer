@@ -1,9 +1,16 @@
 const {dialog} = require('electron').remote;
-const {BrowserWindow} = require('electron')
+const {remote} = require('electron');
+
+const {BrowserWindow} = require('electron');
 let _isOpened = false;
 
 function isOpened() {
     return _isOpened;
+}
+
+function showMessageBox(properties) {
+    _isOpened = true;
+    return dialog.showMessageBox(remote.getCurrentWindow(), properties).finally(() => _isOpened = false);
 }
 
 function showErrorBox(title, message) {
@@ -13,12 +20,12 @@ function showErrorBox(title, message) {
 
 function showOpenDialog(properties) {
     _isOpened = true;
-
-    return dialog.showOpenDialog(properties).finally(() => _isOpened = false);
+    return dialog.showOpenDialog(remote.getCurrentWindow(),properties).finally(() => _isOpened = false);
 }
 
 export const DialogService = {
     isOpened,
     showOpenDialog,
+    showMessageBox,
     showErrorBox
 };

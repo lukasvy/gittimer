@@ -31,12 +31,13 @@
 
 <script>
     import {RepositoriesList} from "~/src/services/RepositoriesList";
-
+    const {remote} = require('electron');
     export default {
         name   : "List",
         data   : function () {
             return {
-                branchesList: []
+                branchesList: [],
+                search: []
             }
         },
         methods: {
@@ -55,6 +56,9 @@
                                             return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
                                         });
 
+            },
+            listenToKeys(key) {
+                console.log(key);
             }
         },
         watch  : {
@@ -64,8 +68,13 @@
             RepositoriesList.subscribe('switchBranch', this.activateRepo);
             RepositoriesList.subscribe('dataRefresh', this.activateRepo);
             this.activateRepo();
+            // this.window = remote.getCurrentWindow();
+            // this.window.addEventListener('keyup', this.listenToKeys);
         },
         destroyed() {
+            if (this.window) {
+                this.window.removeEventListener('keyup', this.listenToKeys);
+            }
             RepositoriesList.unsubscribe('switchBranch', this.activateRepo);
             RepositoriesList.unsubscribe('dataRefresh', this.activateRepo);
         }

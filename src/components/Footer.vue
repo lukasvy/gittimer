@@ -1,7 +1,7 @@
 <template>
     <div class="git-footer">
         <div class="footer-left">
-<!--            <i class="file alternate outline icon"></i>-->
+            <!--            <i class="file alternate outline icon"></i>-->
         </div>
         <div class="footer-rigth" @click.prevent="e => settings(e)">
             <i class="cog icon"></i>
@@ -10,20 +10,22 @@
 </template>
 
 <script>
+    import {SettingsMenuService} from "../services/SettingsMenuService";
+
     const {ipcRenderer, remote} = require('electron');
     import {RepositoriesList} from "../services/RepositoriesList";
+
     export default {
-        name: "Footer",
-        methods : {
-            settings : function(e) {
-                RepositoriesList.removeRepo();
-                // ipcRenderer.sendSync('settingsClicked', {})
-            }
+        name   : "Footer",
+        created() {
+        },
+        methods: {
+            settings: SettingsMenuService.openMenu
         }
     }
 </script>
 
-<style >
+<style>
     .git-footer {
         border-top: 1px solid whitesmoke;
         padding: 5px 10px 5px 10px;
@@ -33,10 +35,12 @@
         background-image: linear-gradient(to top, #E6E6E6 40%, #F2F2F2 100%);
         z-index: 10;
     }
+
     .footer-left {
-        display:flex;
+        display: flex;
         flex-direction: row;
     }
+
     .footer-rigth {
         margin-left: auto;
         margin-right: -8px;

@@ -13,7 +13,6 @@ export class Repository
 
     delete(value) {
         this._isDeleted = value || new Date();
-        console.log(value, this._deleted !== 0);
         return this;
     }
 
@@ -86,18 +85,17 @@ export class Repository
         return new Date(this._initialised);
     }
 
-    setTimeSpent(value) {
-        this._timeSpend = value;
-        return this;
-    }
-
-    setInitialised(value) {
-        this._initialised = value;
-        return this;
-    }
-
-    setBranches(data) {
-        this._branches = data.map(part => Branch.unserialize(part));
+    /**
+     * Fill data to repo from serialized structure
+     * @param data {Object}
+     */
+    fill(data) {
+        this._initialised = data.initialised;
+        this._latestCommit = data.latestCommit;
+        this._isActive = data.isActive;
+        this._timeSpend = data.timeSpend;
+        this._deleted = data.deleted;
+        this._branches = data.branches.map(part => Branch.unserialize(part));
         return this;
     }
 
@@ -114,15 +112,11 @@ export class Repository
         }
     }
 
+    /**
+     * @param data {Object}
+     */
     static unserialize(data) {
-        return new Repository(data.name, data.dir)
-            .setLatestCommit(data.latestCommit)
-            .setIsActive(data.isActive)
-            .setTimeSpent(data.timeSpent)
-            .setLatestCommit(data.latestCommit)
-            .setBranches(data.branches)
-            .setInitialised(data.initialised)
-            .delete(data.deleted)
+        return new Repository(data.name, data.dir).fill(data);
     }
 }
 
