@@ -31,52 +31,62 @@
 
 <script>
     import {RepositoriesList} from "~/src/services/RepositoriesList";
+    import {ListSearchService} from "~/src/services/ListSearchService";
+
     const {remote} = require('electron');
+
     export default {
         name   : "List",
         data   : function () {
             return {
                 branchesList: [],
-                search: []
+                search      : []
             }
         },
         methods: {
+            setBranchesList() {
+                this.branchesList =
+                    this.activeRepo
+                        .getBranches()
+                        .filter(part =>
+                                    !part.isCurrent() &&
+                                    ListSearchService.itemPassesFilter(part.getName()))
+                        .sort((a, b) => {
+                            if (!b.getLastAccess() && a.getLastAccess())
+                            {
+                                return -1;
+                            }
+                            return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
+                        });
+            },
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
                 if (!this.activeRepo)
                 {
                     return this.$router.push('nothing');
                 }
-                this.branchesList = this.activeRepo.getBranches().filter(part => !part.isCurrent())
-                                        .sort((a, b) => {
-                                            if (!b.getLastAccess() && a.getLastAccess())
-                                            {
-                                                return -1;
-                                            }
-                                            return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
-                                        });
+                this.setBranchesList();
 
-            },
-            listenToKeys(key) {
-                console.log(key);
             }
         },
         watch  : {
             '$route': 'activateRepo'
         },
         created() {
-            RepositoriesList.subscribe('switchBranch', this.activateRepo);
-            RepositoriesList.subscribe('dataRefresh', this.activateRepo);
+            ListSearchService.clear();
+            this.removeOnSwitch = RepositoriesList.onSwitchBranch(this.activateRepo);
+            this.removeOnDataRefresh = RepositoriesList.onDataRefresh(this.activateRepo);
+            this.searchSubRemove = ListSearchService.onChange(() => this.setBranchesList());
             this.activateRepo();
-            // this.window = remote.getCurrentWindow();
-            // this.window.addEventListener('keyup', this.listenToKeys);
         },
         destroyed() {
-            if (this.window) {
+            if (this.window)
+            {
                 this.window.removeEventListener('keyup', this.listenToKeys);
             }
-            RepositoriesList.unsubscribe('switchBranch', this.activateRepo);
-            RepositoriesList.unsubscribe('dataRefresh', this.activateRepo);
+            this.removeOnDataRefresh ?  this.removeOnDataRefresh() : undefined;
+            this.removeOnSwitch ?  this.removeOnSwitch() : undefined;
+            this.searchSubRemove ? this.searchSubRemove() : undefined;
         }
     }
 </script>
@@ -117,8 +127,8 @@
 
     i.padded-icon {
         /*padding-top: 5px;*/
-        margin-top: -7px!important;
-        font-size: 1.2em!important;
+        margin-top: -7px !important;
+        font-size: 1.2em !important;
     }
 
     .git-content {

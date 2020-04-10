@@ -1,4 +1,4 @@
-import {each, isUndefined, isFunction, find} from 'underscore';
+import {each, isUndefined, isFunction, isArray} from 'underscore';
 
 /**
  * Created by Lukas Vyslocky <lukas@netaffinity.com> on 03-Oct-19.
@@ -58,7 +58,7 @@ import {each, isUndefined, isFunction, find} from 'underscore';
 /**
  * Create observable object and returns options
  * @param obj {Object}  service to create observable from
- * @param subscriptionDefinitions {Object}  (optional) subscription definitions
+ * @param subscriptionDefinitions {Object|Array}  (optional) subscription definitions
  * @constructor
  */
 export function Create(obj, subscriptionDefinitions) {
@@ -102,6 +102,10 @@ export function Create(obj, subscriptionDefinitions) {
             subscriptionDefinitions[key] = value
         });
     }
+    let subIsArray = false;
+    if (isArray(subscriptionDefinitions)) {
+        subIsArray = true;
+    }
     each(subscriptionDefinitions, function (value, key) {
         each(obj, function (objValue, objKey) {
             if (objKey.match(/^_/) || objKey === 'on'
@@ -111,6 +115,7 @@ export function Create(obj, subscriptionDefinitions) {
             }
             if (objValue === value)
             {
+                key = objKey;
                 const onKey = 'on' + key.charAt(0).toUpperCase() + key.slice(1);
                 const onBeforeKey = 'onBefore' + key.charAt(0).toUpperCase() + key.slice(1);
                 obj[onKey] = function(call) {
@@ -137,4 +142,42 @@ export function Create(obj, subscriptionDefinitions) {
         });
     });
     return obj;
+}
+
+/**
+ * @return {Object}
+ */
+export function Subscription() {
+    return (function(obj) {
+        function subscribe(call) {
+            if (!obj.subscriptions) {
+                obj.subscriptions = [];
+            }
+            if (obj.subscriptions.lastIndexOf(call) === -1) {
+                obj.subscriptions.push(call)
+            }
+            return function() {
+                var index = obj.subscriptions.lastIndexOf(call);
+                if (index > -1) {
+                    obj.subscriptions.splice(index, 1);
+                }
+            }
+        }
+        function trigger() {
+            if (!obj.subscriptions) {
+                obj.subscriptions = [];
+            }
+            const args = Array.prototype.slice.call(arguments);
+            const toPass = {
+                args : args
+            };
+            obj.subscriptions.forEach(function(call){
+                call(toPass);
+            });
+        }
+        return {
+            subscribe,
+            trigger
+        };
+    })({});
 }

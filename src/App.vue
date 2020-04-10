@@ -21,7 +21,7 @@
         name: "App",
         data: function () {
             return {
-                shown: false
+                shown : false
             }
         },
         created() {
@@ -56,7 +56,10 @@
             });
 
             ipcRenderer.on('lost-focus', (event, arg) => {
-                AppService.hide();
+                if (this.shown)
+                {
+                    AppService.hide();
+                }
             });
 
             AppService.onBeforeHide(() => new Promise((resolve, reject) => {
@@ -69,7 +72,8 @@
 
             this.shown = true;
 
-            if (RepositoriesList.get().length) {
+            if (RepositoriesList.get().length)
+            {
                 this.$router.push('active');
             } else
             {
@@ -81,9 +85,10 @@
 
 <style>
     body {
-        background: rgba(0, 0, 0, 0)!important;
+        background: rgba(0, 0, 0, 0) !important;
         overflow: hidden;
     }
+
     .slide-enter-active,
     .slide-leave-active {
         transition: opacity 1s, transform 0.3s;
@@ -95,9 +100,9 @@
     }
 
     .fade-enter-active, .fade-leave-active {
-        transform:matrix(1,0,0,1,0,0);
-        opacity:1;
-        transition:transform 0.3s ease-out 0s,opacity 0.3s ease-in-out 0s;
+        transform: matrix(1, 0, 0, 1, 0, 0);
+        opacity: 1;
+        transition: transform 0.3s ease-out 0s, opacity 0.3s ease-in-out 0s;
     }
 
     .fade {
@@ -106,8 +111,8 @@
 
     .fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
     {
-        transform:matrix(1,0,0,1,0,35);
-        opacity:0;
+        transform: matrix(1, 0, 0, 1, 0, 35);
+        opacity: 0;
     }
 
     .ui.container {

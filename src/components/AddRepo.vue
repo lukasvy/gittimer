@@ -22,13 +22,16 @@
     import {RepositoriesList} from "../services/RepositoriesList";
 
     const {remote} = require('electron');
-
+    import {ListSearchService} from "~/src/services/ListSearchService";
     export default {
         name   : "AddRepo",
         data   : function () {
             return {
                 loading: false
             }
+        },
+        created() {
+            ListSearchService.clear();
         },
         methods: {
             processDir() {

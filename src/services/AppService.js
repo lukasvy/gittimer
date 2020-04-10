@@ -1,11 +1,14 @@
 import {TickerService} from "./TickerService";
 import {DialogService} from "./DialogService";
+import {ListSearchService} from "~/src/services/ListSearchService";
 
 const subscriptions = {
     'onBeforeHide': []
 };
 
 let window;
+
+ListSearchService.onClearFinished(hide);
 
 /**
  *
@@ -27,13 +30,17 @@ function start(w) {
     TickerService.start();
 }
 
+/**
+ *
+ * @return {Promise}
+ */
 function hide() {
     if (DialogService.isOpened()) {
         return Promise.resolve();
     }
     if (!subscriptions['onBeforeHide'].length)
     {
-        return window.hide();
+        return Promise.resolve(window.hide());
     }
     return Promise.all(subscriptions['onBeforeHide'].map(p => p()))
                   .then(window.hide);

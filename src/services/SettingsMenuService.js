@@ -1,4 +1,3 @@
-import {Create} from "~/src/services/Observable";
 import {RepositoriesList} from "~/src/services/RepositoriesList";
 import {DialogService} from "~/src/services/DialogService";
 
@@ -34,7 +33,7 @@ function openMenu(e) {
 /**
  * @return {Object}
  */
-export const SettingsMenuService = Create({
-                                              openMenu,
-                                              pause
-                                          });
+export const SettingsMenuService = {
+    openMenu,
+    pause
+};
