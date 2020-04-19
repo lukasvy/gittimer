@@ -1,11 +1,13 @@
-const fs = require("fs");
 // https://github.com/steveukx/git-js
 const git = require('simple-git/promise');
+const fs = require("fs");
 const path = require('path');
+const Store = require('electron-store');
+
 import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
 
-const Store = require('electron-store');
+
 
 const store = new Store();
 const dataRefresh = Subscription();

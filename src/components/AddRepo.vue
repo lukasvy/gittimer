@@ -18,7 +18,6 @@
 
 <script>
     import {DialogService} from '../services/DialogService';
-    import {isArray} from 'underscore';
     import {RepositoriesList} from "../services/RepositoriesList";
 
     const {remote} = require('electron');
@@ -38,7 +37,7 @@
                 this.loading = true;
                 DialogService.showOpenDialog({properties: ['openDirectory']})
                              .then((dir) => {
-                                 if (isArray(dir.filePaths) && dir.filePaths[0])
+                                 if (Array.isArray(dir.filePaths) && dir.filePaths[0])
                                  {
                                      return RepositoriesList.createFromDir(dir.filePaths[0])
                                                             .then(() => this.$router.push('active'))

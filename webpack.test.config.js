@@ -5,9 +5,13 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 module.exports = [
     {
-        mode  : process.env.NODE_ENV === 'development' ? 'development' : 'production',
-        entry : ['@babel/polyfill', './src/electron.js'],
-        target: 'electron-main',
+        entry : ['@babel/polyfill', './test/index.js'],
+        output: {
+            path    : __dirname + '/dist',
+            filename: "test.js"
+        },
+        mode  : 'development',
+        target: 'node',
         node  : {
             __dirname : false,
             __filename: false
@@ -18,49 +22,10 @@ module.exports = [
                     test   : /\.js$/,
                     exclude: /node_modules/,
                     use    : {
-                        loader : "babel-loader",
+                        loader : "babel-loader?cacheDirectory",
                         options: {
                             presets: ['@babel/preset-env'],
-                            plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import']
-                        }
-                    },
-
-                },
-                {
-                    test  : /\.(png|woff|woff2|eot|ttf|svg)$/,
-                    loader: 'url-loader?limit=100000'
-                },
-                {
-                    test: /\.(png|jpg|gif)$/,
-                    use : "url-loader"
-                }]
-        },
-        output: {
-            path    : __dirname + '/dist',
-            filename: 'electron.js'
-        }
-    },
-    {
-        target: "electron-renderer",
-        entry : ['@babel/polyfill', './src/main.js'],
-        node  : {
-            __dirname : false,
-            __filename: false
-        },
-        output: {
-            path    : __dirname + '/dist',
-            filename: "bundle.js"
-        },
-        module: {
-            rules: [
-                {
-                    test   : /\.js$/,
-                    exclude: /node_modules/,
-                    use    : {
-                        loader : "babel-loader",
-                        options: {
-                            presets: ['@babel/preset-env'],
-                            plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import']
+                            plugins: ['@babel/plugin-proposal-throw-expressions', 'babel-plugin-root-import'],
                         }
                     },
                 },
@@ -79,7 +44,11 @@ module.exports = [
                 {
                     test  : /\.(png|woff|woff2|eot|ttf|svg)$/,
                     loader: 'url-loader?limit=100000'
-                }
+                },
+                {
+                    test: path.resolve(__dirname, 'node_modules/electron-chromedriver/chromedriver.js'),
+                    use : 'shebang-loader',
+                },
             ]
         },
 
@@ -96,16 +65,13 @@ module.exports = [
                                                    filename: "[file].map"
                                                }),
             new webpack.NamedModulesPlugin(),
-
-            new HtmlWebpackPlugin({
-                                      template: './src/index.html',
-                                      inject  : false
-                                  }),
+            new webpack.HotModuleReplacementPlugin(),
+            new webpack.EnvironmentPlugin(['NODE_ENV']),
             new webpack.DefinePlugin(
                 {
                     $inject: (name) => process.env.NODE_ENV.match(/test/) ?
                                        require('../test/mocks/' + name + '.mock') : require(name)
                 })
         ]
-    },
+    }
 ];

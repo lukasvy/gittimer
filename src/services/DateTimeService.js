@@ -1,6 +1,6 @@
 const definitions = [
     [' year', ' y'],
-    [' days', ' d'],
+    [' day', ' d'],
     [' hour', ' h'],
     [' minute', ' m'],
     [' second', ' s'],
