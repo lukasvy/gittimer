@@ -8,5 +8,11 @@ global.document = {addEventListener: (event, sub) => keyboard.subscribe(sub)};
 export const utils = {
     sandbox,
     clock,
-    keyboard : keyboard.trigger
+    keyboard: keyboard.trigger,
+    git     : {
+        log   : () => Promise.resolve(),
+        status: () => Promise.resolve(),
+        branch: () => Promise.resolve(),
+        raw   : () => Promise.resolve(),
+    }
 };

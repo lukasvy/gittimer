@@ -1,3 +1,6 @@
 module.exports = {
-    remote : [  ]
+    remote: {
+        dialog          : () => null,
+        getCurrentWindow: () => null
+    }
 };

@@ -101,11 +101,6 @@ module.exports = [
                                       template: './src/index.html',
                                       inject  : false
                                   }),
-            new webpack.DefinePlugin(
-                {
-                    $inject: (name) => process.env.NODE_ENV.match(/test/) ?
-                                       require('../test/mocks/' + name + '.mock') : require(name)
-                })
         ]
     },
 ];

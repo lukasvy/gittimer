@@ -67,11 +67,10 @@ module.exports = [
             new webpack.NamedModulesPlugin(),
             new webpack.HotModuleReplacementPlugin(),
             new webpack.EnvironmentPlugin(['NODE_ENV']),
-            new webpack.DefinePlugin(
-                {
-                    $inject: (name) => process.env.NODE_ENV.match(/test/) ?
-                                       require('../test/mocks/' + name + '.mock') : require(name)
-                })
+            // new webpack.DefinePlugin(
+            //     {
+            //         $inject: $inject
+            //     })
         ]
     }
 ];

@@ -1,3 +1,5 @@
+import * as $inject from '~/src/services/Injector';
+
 const {remote} = $inject('electron');
 const dialog = remote.dialog;
 

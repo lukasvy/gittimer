@@ -1,12 +1,12 @@
+import * as $inject from '~/src/services/Injector';
 // https://github.com/steveukx/git-js
-const git = require('simple-git/promise');
-const fs = require("fs");
-const path = require('path');
-const Store = require('electron-store');
+const git = $inject('simple-git/promise');
+const fs = $inject("fs");
+const path = $inject('path');
+const Store = $inject('electron-store');
 
 import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
-
 
 
 const store = new Store();
