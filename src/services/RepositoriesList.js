@@ -198,6 +198,11 @@ function removeRepo() {
     storeData();
 }
 
+function reset() {
+    tick = 0;
+    while(repositories.length) {repositories.pop()};
+}
+
 export const RepositoriesList = {
     createFromDir,
     createFromData,
@@ -207,5 +212,6 @@ export const RepositoriesList = {
     removeRepo,
     getActiveRepo,
     getActiveBranch,
+    reset,
     get
 };

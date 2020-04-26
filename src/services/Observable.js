@@ -28,7 +28,7 @@ export function Subscription() {
         }
         return {
             subscribe,
-            trigger
+            trigger,
         };
     })({});
 }

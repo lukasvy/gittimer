@@ -1,8 +1,9 @@
+let _data = {};
 module.exports = class Store{
-    get(){
-
+    get(name){
+        return _data[name];
     }
-    set(){
-
+    set(name, data){
+        _data[name] = data;
     }
 };
