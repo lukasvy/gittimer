@@ -5,10 +5,12 @@ export class Repository
     constructor(name, dir) {
         this._name = name;
         this._dir = dir;
-        this._timeSpend = 0;
+        this._timeSpent = 0;
         this._initialised = new Date();
         this._branches = [];
         this._deleted = 0;
+        this._tempTime = 0;
+        this._lastAccessed = new Date();
     }
 
     delete(value) {
@@ -63,6 +65,7 @@ export class Repository
     }
 
     switchCurrentBranchByName(name) {
+        this.fileChanged();
         let current = this.getCurrentBranch();
         current.setIsCurrent(false);
         this.getBranchByName(name).setIsCurrent(true);
@@ -70,11 +73,14 @@ export class Repository
     }
 
     getTimeSpent() {
-        return this._timeSpend;
+        return this._timeSpent + this._tempTime;
     }
 
     tick() {
-        this._timeSpend++;
+        this._tempTime++;
+        if (this._tempTime > 60 * 10) {
+            this._tempTime = 0;
+        }
         try
         {
             this.getCurrentBranch().tick();
@@ -83,6 +89,15 @@ export class Repository
             console.log(e);
         }
         return this;
+    }
+
+    fileChanged() {
+        this._timeSpent = this._tempTime;
+        this._tempTime = 0;
+        this._lastAccessed = new Date()
+        if (this.getCurrentBranch()) {
+            this.getCurrentBranch().fileChanged();
+        }
     }
 
     getInitDate() {
@@ -96,8 +111,9 @@ export class Repository
     fill(data) {
         this._initialised = data.initialised;
         this._latestCommit = data.latestCommit;
+        this._lastAccessed = data.lastAccessed;
         this._isActive = data.isActive;
-        this._timeSpend = data.timeSpend;
+        this._timeSpent = data.timeSpent;
         this._deleted = data.deleted;
         this._branches = data.branches.map(part => Branch.unserialize(part));
         return this;
@@ -107,8 +123,9 @@ export class Repository
         return {
             initialised : this._initialised,
             latestCommit: this._latestCommit,
+            lastAccessed: this._lastAccessed,
             isActive    : this._isActive,
-            timeSpend   : this._timeSpend,
+            timeSpent   : this._timeSpent,
             name        : this._name,
             dir         : this._dir,
             deleted     : this._deleted,

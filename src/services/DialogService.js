@@ -14,7 +14,9 @@ function showMessageBox(properties) {
 
 function showErrorBox(title, message) {
     _isOpened = true;
-    return dialog.showErrorBox(title, message).finally(() => _isOpened = false);
+    dialog.showErrorBox(title, message);
+    _isOpened = false;
+    return;
 }
 
 function showOpenDialog(properties) {

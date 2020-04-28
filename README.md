@@ -1,5 +1,7 @@
 # gittimer
-Electron program that will count time spend on specific branch
+Electron program that will count time spend on specific branch.
+
+Time will be counted only on the repos that files were changed periodically. If no changes were made those branches and repos will not have their work time changed.
 
 ## Built With
 * [Electron](https://www.electronjs.org/)

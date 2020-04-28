@@ -8,6 +8,7 @@ export class Branch
         this._current = current;
         this._timeSpent = 0;
         this._lastAccessed = undefined;
+        this._tempTime = 0
     }
 
     getName() {
@@ -40,15 +41,17 @@ export class Branch
     }
 
     tick() {
-        this._timeSpent++;
+        if (this._tempTime > 60 * 10) {
+            this._tempTime = 0;
+        }
     }
 
     getTimeSpent() {
-        return this._timeSpent;
+        return this._timeSpent + this._tempTime;
     }
 
     getFormattedTimeSpent() {
-        return humanReadableSeconds(this._timeSpent, true);
+        return humanReadableSeconds(this.getTimeSpent(), true);
     }
 
     getLastAccess() {
@@ -57,6 +60,13 @@ export class Branch
 
     getFormattedLastAccess() {
         return this._lastAccessed ? moment(this._lastAccessed).format('YYYY-MM-DD HH:mm:ss') : '';
+    }
+
+    fileChanged() {
+        console.log('branch changed');
+        this._lastAccessed = new Date();
+        this._timeSpent = this._tempTime;
+        this._tempTime = 0;
     }
 
     serialize() {
