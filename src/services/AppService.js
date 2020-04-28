@@ -1,6 +1,7 @@
 import {TickerService} from "./TickerService";
 import {DialogService} from "./DialogService";
 import {ListSearchService} from "~/src/services/ListSearchService";
+import {FileWatchService} from "~/src/services/FileWatchService";
 
 const subscriptions = {
     'onBeforeHide': []
@@ -15,11 +16,13 @@ ListSearchService.onClearFinished(hide);
  */
 function stop() {
     TickerService.pause();
+    FileWatchService.pause();
 }
 
 
 function restart() {
     TickerService.start();
+    FileWatchService.start();
 }
 
 /**
@@ -28,6 +31,7 @@ function restart() {
 function start(w) {
     window = w;
     TickerService.start();
+    FileWatchService.start();
 }
 
 /**

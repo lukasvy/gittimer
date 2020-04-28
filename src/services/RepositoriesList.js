@@ -31,6 +31,10 @@ TickerService.subscribeToTick(() => {
     }
 });
 
+/**
+ * @param repo
+ * @param toBranchName
+ */
 function switchActiveBranch(repo, toBranchName) {
     if (repo.getCurrentBranch().getName() !== toBranchName)
     {
@@ -43,6 +47,7 @@ function switchActiveBranch(repo, toBranchName) {
         }
         repo.switchCurrentBranchByName(toBranchName);
         switchBranch.trigger(toBranchName);
+        dataRefresh.trigger();
     }
 }
 
@@ -61,6 +66,7 @@ function deleteRepo(repo) {
     if (index > -1)
     {
         repositories.splice(index, 1);
+        dataRefresh.trigger();
     }
 }
 
@@ -161,7 +167,7 @@ async function createFromDir(dir) {
                                       return repoData;
 
                                   })
-                       ]);
+                       ]).finally(dataRefresh.trigger);
 }
 
 function createFromData() {
@@ -169,12 +175,12 @@ function createFromData() {
     if (data)
     {
         data.map(part => Repository.unserialize(part)).forEach(part => get().push(part));
+        dataRefresh.trigger();
     }
 }
 
 function storeData() {
     store.set('gittimer-data', get().map(repo => repo.serialize()));
-    dataRefresh.trigger();
 }
 
 /**
@@ -196,6 +202,7 @@ function getActiveBranch() {
 function removeRepo() {
     repositories.splice(0, 1);
     storeData();
+    dataRefresh.trigger();
 }
 
 function reset() {

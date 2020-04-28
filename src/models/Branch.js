@@ -53,7 +53,6 @@ export class Branch
     }
 
     fileChanged() {
-        console.log('branch changed');
         this._lastAccessed = new Date();
         this._timeSpent += this._tempTime;
         this._tempTime = 0;

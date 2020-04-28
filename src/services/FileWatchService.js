@@ -35,11 +35,13 @@ function watch(dir) {
 
 /**
  * @param dir
- * @returns {Promise<void>}
  */
-async function unwatch(dir) {
-    listenerDirsList[dir]();
-    delete listenerDirsList[dir];
+function unwatch(dir) {
+    if (listenerDirsList[dir])
+    {
+        listenerDirsList[dir]();
+        delete listenerDirsList[dir];
+    }
 }
 
 function pause() {
