@@ -1,5 +1,6 @@
 import {Subscription} from "~/src/services/Observable";
 import {TickerService} from "~/src/services/TickerService";
+import {Settings} from "~/src/services/SettingsService";
 
 const asmCrypto = require('asmcrypto-lite');
 const $injector = require('~/src/services/Injector');
@@ -9,7 +10,7 @@ const subscriptions = {};
 
 let tickerTime = 0;
 TickerService.subscribeToTick(() => {
-    if (tickerTime++ > 10)
+    if (tickerTime++ > Settings.gitDiffCheckInSeconds)
     {
         tickerTime = 0;
         Object.keys(subscriptions).forEach((key) => {

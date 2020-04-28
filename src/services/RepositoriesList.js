@@ -7,14 +7,13 @@ const Store = require('electron-store');
 
 import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
-
+import {Settings} from "~/src/services/SettingsService";
+import {Repository} from "../models/Repository";
+import {TickerService} from "./TickerService";
 
 const store = new Store();
 const dataRefresh = Subscription();
 const switchBranch = Subscription();
-
-import {Repository} from "../models/Repository";
-import {TickerService} from "./TickerService";
 
 let tick = 0;
 
@@ -23,7 +22,7 @@ const repositories = [];
 TickerService.subscribeToTick(() => {
     get().forEach((repo) => repo.tick());
     tick++;
-    if (tick === 5)
+    if (tick >= Settings.checkForRepoChangeInSeconds)
     {
         tick = 0;
         checkReposForChanges();
