@@ -1,6 +1,4 @@
-import * as $inject from '~/src/services/Injector';
-
-const {remote} = $inject('electron');
+const {remote} = require('electron');
 const dialog = remote.dialog;
 
 let _isOpened = false;

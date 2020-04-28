@@ -55,10 +55,14 @@ module.exports = [
         resolve: {
             extensions: [".vue", ".js", ".scss"],
             alias     : {
-                "@": './src'
+                "@"                 : './src',
+                "electron"          : path.resolve(__dirname, "test/mocks/electron.mock.js"),
+                "electron-store"    : path.resolve(__dirname, "test/mocks/electron-store.mock.js"),
+                "fs"                : path.resolve(__dirname, "test/mocks/fs.mock.js"),
+                "path"              : path.resolve(__dirname, "test/mocks/path.mock.js"),
+                "simple-git/promise": path.resolve(__dirname, "test/mocks/simple-git.promise.mock.js"),
             }
         },
-
         plugins: [
             new VueLoaderPlugin(),
             new webpack.SourceMapDevToolPlugin({
@@ -66,11 +70,7 @@ module.exports = [
                                                }),
             new webpack.NamedModulesPlugin(),
             new webpack.HotModuleReplacementPlugin(),
-            new webpack.EnvironmentPlugin(['NODE_ENV']),
-            // new webpack.DefinePlugin(
-            //     {
-            //         $inject: $inject
-            //     })
+            new webpack.EnvironmentPlugin(['NODE_ENV'])
         ]
     }
 ];

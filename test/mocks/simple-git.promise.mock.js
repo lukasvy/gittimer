@@ -1,15 +1,13 @@
 const git = {
-    log   : () => git.log   ,
+    log   : () => git.log,
     status: () => git.status,
     branch: () => git.branch,
-    raw   : () => git.raw   ,
+    raw   : () => git.raw,
 };
 const defaultGit = {
-    defaultValues : git
+    defaultValues: git
 };
-module.exports = function (dir, stub) {
-    if (stub) {
-        defaultGit.defaultValues = stub;
-    }
+let defaultGitFunct = function (dir) {
     return defaultGit.defaultValues;
 };
+module.exports = defaultGitFunct;

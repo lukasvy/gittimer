@@ -1,8 +1,7 @@
 const expect = require('chai').expect;
 const {sandbox, clock} = require('~/test/TestHelper').utils;
-
 import * as gitData from '../test/data/git.data'
-import * as $inject from '../src/services/Injector';
+const $inject = require('../src/services/Injector');
 
 const gitBranchStub = sandbox.stub().returns(Promise.resolve(gitData.branches));
 const gitRawStub = sandbox.stub()
@@ -17,7 +16,7 @@ const gitFunctionObj = {
 };
 
 function defaultPrepare(dir) {
-    const fs = $inject('fs');
+    const fs = require('fs');
     const existsSpy = sandbox.stub().returns(true);
     const readdirSyncStub = sandbox.stub();
     const isDirStub = sandbox.stub().returns(true);
@@ -50,6 +49,7 @@ function defaultPrepare(dir) {
 describe('Repositories list should work as expected', () => {
     afterEach(() => {
         const {RepositoriesList} = require("~/src/services/RepositoriesList");
+        $inject.revert('simple-git/promise');
         RepositoriesList.removeRepo();
     });
     it('Should create repo list from directory', async () => {

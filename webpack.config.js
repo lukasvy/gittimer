@@ -38,10 +38,16 @@ module.exports = [
         output: {
             path    : __dirname + '/dist',
             filename: 'electron.js'
-        }
+        },
+        plugins: [
+            new webpack.DefinePlugin({
+                                         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+                                     }),
+        ]
     },
     {
         target: "electron-renderer",
+        mode  : process.env.NODE_ENV === 'development' ? 'development' : 'production',
         entry : ['@babel/polyfill', './src/main.js'],
         node  : {
             __dirname : false,
@@ -96,7 +102,9 @@ module.exports = [
                                                    filename: "[file].map"
                                                }),
             new webpack.NamedModulesPlugin(),
-
+            new webpack.DefinePlugin({
+                                         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+                                     }),
             new HtmlWebpackPlugin({
                                       template: './src/index.html',
                                       inject  : false

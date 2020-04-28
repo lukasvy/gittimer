@@ -1,7 +1,7 @@
 import {RepositoriesList} from "~/src/services/RepositoriesList";
 import {DialogService} from "~/src/services/DialogService";
 
-const {Menu} = $inject('electron').remote;
+const {Menu} = require('electron').remote;
 
 
 function pause() {

@@ -1,17 +1,12 @@
-const $inject = function (name) {
-    if (!$inject._replacements)
-    {
-        $inject._replacements = {};
-    }
-    if ($inject._replacements[name])
-    {
+const {Subscription} = require("~/src/services/Observable");
+const replacementSubscriptions = Subscription();
+
+const $inject = {};
+$inject.inject = (name, requiredModule) => {
+    if ($inject._replacements && $inject._replacements[name]) {
         return $inject._replacements[name];
     }
-
-    return process.env.NODE_ENV.match(/test/) ?
-           require('~/test/mocks/' +
-                   name.replace(/[^a-zA-Z0-9\._-]/g, '.')
-                   + '.mock') : require(name)
+    return requiredModule;
 };
 $inject.replace = function (name, by) {
     if (!$inject._replacements)
@@ -19,6 +14,7 @@ $inject.replace = function (name, by) {
         $inject._replacements = {};
     }
     $inject._replacements[name] = by;
+    replacementSubscriptions.trigger(name, $inject._replacements[name]);
     return $inject;
 };
 $inject.revert = function (name) {
@@ -26,6 +22,8 @@ $inject.revert = function (name) {
     {
         delete $inject._replacements[name];
     }
+    replacementSubscriptions.trigger(name, undefined);
     return $inject;
 };
+$inject.subscribe = replacementSubscriptions.subscribe;
 module.exports = $inject;

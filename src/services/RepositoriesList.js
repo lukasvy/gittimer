@@ -1,9 +1,9 @@
-import * as $inject from '~/src/services/Injector';
+const $injector = require('~/src/services/Injector');
 // https://github.com/steveukx/git-js
-const git = $inject('simple-git/promise');
-const fs = $inject("fs");
-const path = $inject('path');
-const Store = $inject('electron-store');
+const git = $injector.inject('simple-git/promise', require('simple-git/promise'));
+const fs = require("fs");
+const path = require('path');
+const Store = require('electron-store');
 
 import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
