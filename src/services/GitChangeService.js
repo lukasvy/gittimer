@@ -4,7 +4,10 @@ import {Settings} from "~/src/services/SettingsService";
 
 const asmCrypto = require('asmcrypto-lite');
 const $injector = require('~/src/services/Injector');
-const git = $injector.inject('simple-git/promise', require('simple-git/promise'));
+const originalGit = require('simple-git/promise');
+const git = (dir) => {
+    return $injector.inject('simple-git/promise', originalGit)(dir);
+};
 
 const subscriptions = {};
 

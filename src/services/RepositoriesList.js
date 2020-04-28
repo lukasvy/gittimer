@@ -1,6 +1,9 @@
 const $injector = require('~/src/services/Injector');
 // https://github.com/steveukx/git-js
-const git = $injector.inject('simple-git/promise', require('simple-git/promise'));
+const originalGit = require('simple-git/promise');
+const git = (dir) => {
+    return $injector.inject('simple-git/promise', originalGit)(dir);
+};
 const fs = require("fs");
 const path = require('path');
 const Store = require('electron-store');

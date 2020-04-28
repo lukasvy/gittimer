@@ -1,6 +1,7 @@
 const expect = require('chai').expect;
 const {sandbox, clock} = require('~/test/TestHelper').utils;
 import * as gitData from '../test/data/git.data'
+
 const $inject = require('../src/services/Injector');
 
 const gitBranchStub = sandbox.stub().returns(Promise.resolve(gitData.branches));
@@ -8,11 +9,13 @@ const gitRawStub = sandbox.stub()
                           .returns(Promise.resolve('testName:test'));
 const gitLogStub = sandbox.stub().returns(Promise.resolve({latest: new Date()}));
 const gitStatusStub = sandbox.stub().returns(Promise.resolve({current: 'test'}));
+const gitStatusDiff = sandbox.stub().returns(Promise.resolve('test'));
 const gitFunctionObj = {
     raw   : gitRawStub,
     branch: gitBranchStub,
     log   : gitLogStub,
-    status: gitStatusStub
+    status: gitStatusStub,
+    diff  : gitStatusDiff
 };
 
 function defaultPrepare(dir) {
@@ -27,9 +30,9 @@ function defaultPrepare(dir) {
     gitFunctionObj.raw = gitRawStub;
     gitFunctionObj.log = sandbox.stub().returns(Promise.resolve({latest: new Date()}));
     gitFunctionObj.status = sandbox.stub().returns(Promise.resolve({current: 'test'}));
+    gitFunctionObj.diff = sandbox.stub().returns(Promise.resolve('test'));
 
     const gitFunctStub = sandbox.stub().callsFake(() => gitFunctionObj);
-
     $inject.replace('simple-git/promise', gitFunctStub);
     fs.existsSync = existsSpy;
     fs.lstatSync = function () {
@@ -120,7 +123,7 @@ describe('Repositories list should work as expected', () => {
         const serializedBranch2 = RepositoriesList.getActiveRepo().getBranches()[0].serialize();
         delete serialized2.branches;
         expect(RepositoriesList.get()[0].getBranches().length).to.equal(3);
-        expect(JSON.stringify(serialized)===JSON.stringify(serialized2), 'All serialized data for repo is fine').to.equal(true);
-        expect(JSON.stringify(serializedBranch)===JSON.stringify(serializedBranch2), 'All serialized data for branch is fine').to.equal(true);
+        expect(JSON.stringify(serialized) === JSON.stringify(serialized2), 'All serialized data for repo is fine').to.equal(true);
+        expect(JSON.stringify(serializedBranch) === JSON.stringify(serializedBranch2), 'All serialized data for branch is fine').to.equal(true);
     })
 });
