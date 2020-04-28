@@ -1,19 +1,16 @@
-const callBacks = [];
+import {Subscription} from "~/src/services/Observable";
+
 let elapsed = 0;
 let startedAt;
 let _isPaused = false;
+
+const sub = Subscription();
 
 function tick(elapsed) {
     if (_isPaused) {
         return;
     }
-    callBacks.forEach((call) => call(elapsed))
-}
-
-function subscribeToTick(call) {
-    if (callBacks.lastIndexOf(call) === -1) {
-        callBacks.push(call)
-    }
+    sub.trigger(elapsed);
 }
 
 function pause() {
@@ -35,5 +32,5 @@ function start() {
 export const TickerService = {
     start,
     pause,
-    subscribeToTick
+    subscribeToTick : sub.subscribe
 };

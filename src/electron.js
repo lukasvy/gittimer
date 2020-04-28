@@ -42,6 +42,7 @@ function createWindow() {
         let windowPosition = '';
         let addX = 0;
         let addY = 0;
+
         if (trayPos.x > 300)
         {
             if (trayPos.y > 300)
@@ -73,6 +74,7 @@ function createWindow() {
     win.removeMenu();
     myWindow = win;
     myWindow.loadFile(path.join(__dirname, 'index.html'));
+
     myWindow.on('minimize', function (event) {
         event.preventDefault();
         myWindow.hide();
@@ -82,7 +84,7 @@ function createWindow() {
         myWindow.setOpacity(0);
     });
 
-    if (process.env.NODE_ENV === 'development')
+    if (process.env.NODE_ENV.match(/development/))
     {
         win.openDevTools();
     }
@@ -130,7 +132,6 @@ function createWindow() {
                 }
             },
         ]);
-
 
     tray = new Tray(nativeImage.createFromPath(
         path.join(__dirname, '..', 'public', 'icons', 'git-branch.png')));

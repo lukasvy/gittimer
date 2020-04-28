@@ -69,6 +69,10 @@ export class Repository
         return this;
     }
 
+    getTimeSpent() {
+        return this._timeSpend;
+    }
+
     tick() {
         this._timeSpend++;
         try

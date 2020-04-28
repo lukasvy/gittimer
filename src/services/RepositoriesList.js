@@ -1,11 +1,13 @@
-const fs = require("fs");
+const $injector = require('~/src/services/Injector');
 // https://github.com/steveukx/git-js
-const git = require('simple-git/promise');
+const git = $injector.inject('simple-git/promise', require('simple-git/promise'));
+const fs = require("fs");
 const path = require('path');
+const Store = require('electron-store');
+
 import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
 
-const Store = require('electron-store');
 
 const store = new Store();
 const dataRefresh = Subscription();
@@ -196,6 +198,11 @@ function removeRepo() {
     storeData();
 }
 
+function reset() {
+    tick = 0;
+    while(repositories.length) {repositories.pop()};
+}
+
 export const RepositoriesList = {
     createFromDir,
     createFromData,
@@ -205,5 +212,6 @@ export const RepositoriesList = {
     removeRepo,
     getActiveRepo,
     getActiveBranch,
+    reset,
     get
 };

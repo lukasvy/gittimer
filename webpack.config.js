@@ -5,7 +5,7 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 module.exports = [
     {
-        mode  : 'development',
+        mode  : process.env.NODE_ENV === 'development' ? 'development' : 'production',
         entry : ['@babel/polyfill', './src/electron.js'],
         target: 'electron-main',
         node  : {
@@ -27,7 +27,7 @@ module.exports = [
 
                 },
                 {
-                    test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+                    test  : /\.(png|woff|woff2|eot|ttf|svg)$/,
                     loader: 'url-loader?limit=100000'
                 },
                 {
@@ -38,10 +38,16 @@ module.exports = [
         output: {
             path    : __dirname + '/dist',
             filename: 'electron.js'
-        }
+        },
+        plugins: [
+            new webpack.DefinePlugin({
+                                         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+                                     }),
+        ]
     },
     {
         target: "electron-renderer",
+        mode  : process.env.NODE_ENV === 'development' ? 'development' : 'production',
         entry : ['@babel/polyfill', './src/main.js'],
         node  : {
             __dirname : false,
@@ -77,7 +83,7 @@ module.exports = [
                     ],
                 },
                 {
-                    test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+                    test  : /\.(png|woff|woff2|eot|ttf|svg)$/,
                     loader: 'url-loader?limit=100000'
                 }
             ]
@@ -96,11 +102,13 @@ module.exports = [
                                                    filename: "[file].map"
                                                }),
             new webpack.NamedModulesPlugin(),
-
+            new webpack.DefinePlugin({
+                                         'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+                                     }),
             new HtmlWebpackPlugin({
                                       template: './src/index.html',
                                       inject  : false
-                                  })
+                                  }),
         ]
-    }
+    },
 ];

@@ -1,12 +1,11 @@
 import {Subscription} from "~/src/services/Observable";
-
-const ipc = require('electron').ipcRenderer;
+import {KeyboardListener} from "~/src/services/KeyboardListener";
 
 let search = [];
 const change = Subscription();
 const clearFinished = Subscription();
 
-document.addEventListener("keyup", event => {
+KeyboardListener.listen(event => {
     if (event.key === 'Backspace')
     {
         search.pop();
@@ -28,6 +27,7 @@ document.addEventListener("keyup", event => {
         change.trigger();
     }
 });
+
 
 export const ListSearchService =
                  {
