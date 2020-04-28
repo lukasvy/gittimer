@@ -15,16 +15,6 @@ export class Branch
         return this._name;
     }
 
-    setLastAccessed(value) {
-        this._lastAccessed = value;
-        return this;
-    }
-
-    setTimeSpent(value) {
-        this._timeSpent = value;
-        return this;
-    }
-
     setIsCurrent(value) {
         if (value)
         {
@@ -41,7 +31,7 @@ export class Branch
     }
 
     tick() {
-        if (this._tempTime > 60 * 10) {
+        if (this._tempTime++ > 60 * 10) {
             this._tempTime = 0;
         }
     }
@@ -65,7 +55,7 @@ export class Branch
     fileChanged() {
         console.log('branch changed');
         this._lastAccessed = new Date();
-        this._timeSpent = this._tempTime;
+        this._timeSpent += this._tempTime;
         this._tempTime = 0;
     }
 

@@ -77,8 +77,7 @@ export class Repository
     }
 
     tick() {
-        this._tempTime++;
-        if (this._tempTime > 60 * 10) {
+        if (this._tempTime++ > 60 * 10) {
             this._tempTime = 0;
         }
         try
@@ -92,9 +91,9 @@ export class Repository
     }
 
     fileChanged() {
-        this._timeSpent = this._tempTime;
+        this._timeSpent += this._tempTime;
         this._tempTime = 0;
-        this._lastAccessed = new Date()
+        this._lastAccessed = new Date();
         if (this.getCurrentBranch()) {
             this.getCurrentBranch().fileChanged();
         }
