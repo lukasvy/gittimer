@@ -1,6 +1,7 @@
 import {Subscription} from "~/src/services/Observable";
 import {TickerService} from "~/src/services/TickerService";
 import {Settings} from "~/src/services/SettingsService";
+import {timers} from "sinon";
 
 const asmCrypto = require('asmcrypto-lite');
 const $injector = require('~/src/services/Injector');
@@ -11,11 +12,11 @@ const git = (dir) => {
 
 const subscriptions = {};
 
-let tickerTime = 0;
+let tickerTime = 1;
 TickerService.subscribeToTick(() => {
-    if (tickerTime++ > Settings.gitDiffCheckInSeconds)
+    if (++tickerTime >= Settings.gitDiffCheckInSeconds)
     {
-        tickerTime = 0;
+        tickerTime = 1;
         Object.keys(subscriptions).forEach((key) => {
             check(subscriptions[key]);
         });
@@ -62,5 +63,6 @@ function subscribe(dir, callBack) {
 }
 
 export const GitChangeService = {
-    subscribe: subscribe
+    subscribe: subscribe,
+    reset : () => tickerTime = 1
 };

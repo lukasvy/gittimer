@@ -1,4 +1,5 @@
 import {Branch} from "./Branch";
+import {Settings} from "@/services/SettingsService";
 
 export class Repository
 {
@@ -10,7 +11,8 @@ export class Repository
         this._branches = [];
         this._deleted = 0;
         this._tempTime = 0;
-        this._lastAccessed = new Date();
+        this._lastAccessed = undefined;
+        this._isActive = false;
     }
 
     delete(value) {
@@ -27,6 +29,10 @@ export class Repository
     }
 
     addBranch(data) {
+        if (data.current && this.getCurrentBranch())
+        {
+            this.getCurrentBranch().setIsCurrent(false);
+        }
         this._branches.push(new Branch(data.name, data.current));
     }
 
@@ -65,10 +71,15 @@ export class Repository
     }
 
     switchCurrentBranchByName(name) {
-        this.fileChanged();
         let current = this.getCurrentBranch();
-        current.setIsCurrent(false);
-        this.getBranchByName(name).setIsCurrent(true);
+        if (this.getBranchByName(name))
+        {
+            if (current)
+            {
+                current.setIsCurrent(false);
+            }
+            this.getBranchByName(name).setIsCurrent(true);
+        }
         return this;
     }
 
@@ -77,12 +88,16 @@ export class Repository
     }
 
     tick() {
-        if (this._tempTime++ > 60 * 10) {
+        if (++this._tempTime >= Settings.inactivityTimeInSeconds)
+        {
             this._tempTime = 0;
         }
         try
         {
-            this.getCurrentBranch().tick();
+            if (this.getCurrentBranch())
+            {
+                this.getCurrentBranch().tick();
+            }
         } catch (e)
         {
             console.log(e);
@@ -90,11 +105,16 @@ export class Repository
         return this;
     }
 
+    getLastAccess() {
+        return this._lastAccessed;
+    }
+
     fileChanged() {
         this._timeSpent += this._tempTime;
         this._tempTime = 0;
         this._lastAccessed = new Date();
-        if (this.getCurrentBranch()) {
+        if (this.getCurrentBranch())
+        {
             this.getCurrentBranch().fileChanged();
         }
     }
@@ -108,26 +128,26 @@ export class Repository
      * @param data {Object}
      */
     fill(data) {
-        this._initialised = data.initialised;
-        this._latestCommit = data.latestCommit;
-        this._lastAccessed = data.lastAccessed;
+        this._initialised = new Date(data.initialised);
+        this._latestCommit = data.latestCommit ? new Date(data.latestCommit) : undefined;
+        this._lastAccessed = data.lastAccessed ? new Date(data.lastAccessed) : undefined;
         this._isActive = data.isActive;
         this._timeSpent = data.timeSpent;
-        this._deleted = data.deleted;
+        this._deleted = data.deleted ? new Date(data.deleted) : undefined;
         this._branches = data.branches.map(part => Branch.unserialize(part));
         return this;
     }
 
     serialize() {
         return {
-            initialised : this._initialised,
-            latestCommit: this._latestCommit,
-            lastAccessed: this._lastAccessed,
+            initialised : this._initialised.toJSON(),
+            latestCommit: this._latestCommit ? this._latestCommit.toJSON() : undefined,
+            lastAccessed: this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
             isActive    : this._isActive,
             timeSpent   : this._timeSpent,
             name        : this._name,
             dir         : this._dir,
-            deleted     : this._deleted,
+            deleted     : this._deleted ? this._deleted.toJSON() : undefined,
             branches    : this._branches.map(branch => branch.serialize())
         }
     }

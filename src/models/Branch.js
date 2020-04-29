@@ -1,5 +1,6 @@
 import {humanReadableSeconds} from '~/src/services/DateTimeService';
 import * as moment from 'moment';
+import {Settings} from "@/services/SettingsService";
 
 export class Branch
 {
@@ -8,7 +9,7 @@ export class Branch
         this._current = current;
         this._timeSpent = 0;
         this._lastAccessed = undefined;
-        this._tempTime = 0
+        this._tempTime = 0;
     }
 
     getName() {
@@ -21,6 +22,7 @@ export class Branch
             this._current = true;
         } else
         {
+            this._tempTime = 0;
             this._lastAccessed = new Date();
             this._current = false;
         }
@@ -31,7 +33,7 @@ export class Branch
     }
 
     tick() {
-        if (this._tempTime++ > 60 * 10) {
+        if (++this._tempTime >= Settings.inactivityTimeInSeconds) {
             this._tempTime = 0;
         }
     }
@@ -61,7 +63,7 @@ export class Branch
     serialize() {
         return {
             timeSpent   : this._timeSpent,
-            lastAccessed: this._lastAccessed,
+            lastAccessed: this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
             current     : this._current,
             name        : this._name
         }
@@ -73,7 +75,7 @@ export class Branch
      */
     fill(data) {
         this._timeSpent = data.timeSpent;
-        this._lastAccessed = data.lastAccessed;
+        this._lastAccessed = new Date(data.lastAccessed);
         return this;
     }
 

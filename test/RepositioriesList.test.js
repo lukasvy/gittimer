@@ -1,22 +1,12 @@
+import {prepareGit} from "../test/data/git.data";
+
 const expect = require('chai').expect;
 const {sandbox, clock} = require('~/test/TestHelper').utils;
 import * as gitData from '../test/data/git.data'
 
 const $inject = require('../src/services/Injector');
 
-const gitBranchStub = sandbox.stub().returns(Promise.resolve(gitData.branches));
-const gitRawStub = sandbox.stub()
-                          .returns(Promise.resolve('testName:test'));
-const gitLogStub = sandbox.stub().returns(Promise.resolve({latest: new Date()}));
-const gitStatusStub = sandbox.stub().returns(Promise.resolve({current: 'test'}));
-const gitStatusDiff = sandbox.stub().returns(Promise.resolve('test'));
-const gitFunctionObj = {
-    raw   : gitRawStub,
-    branch: gitBranchStub,
-    log   : gitLogStub,
-    status: gitStatusStub,
-    diff  : gitStatusDiff
-};
+const {gitFunctionObj} = prepareGit();
 
 function defaultPrepare(dir) {
     const fs = require('fs');
@@ -24,13 +14,7 @@ function defaultPrepare(dir) {
     const readdirSyncStub = sandbox.stub();
     const isDirStub = sandbox.stub().returns(true);
     const isDirSpecificStub = sandbox.stub().returns(true);
-    gitFunctionObj.branch = sandbox.stub().returns(Promise.resolve(gitData.branches));
-    const gitRawStub = sandbox.stub()
-                              .returns(Promise.resolve('testName:test'));
-    gitFunctionObj.raw = gitRawStub;
-    gitFunctionObj.log = sandbox.stub().returns(Promise.resolve({latest: new Date()}));
-    gitFunctionObj.status = sandbox.stub().returns(Promise.resolve({current: 'test'}));
-    gitFunctionObj.diff = sandbox.stub().returns(Promise.resolve('test'));
+    const {gitFunctionObj, gitRawStub} = prepareGit();
 
     const gitFunctStub = sandbox.stub().callsFake(() => gitFunctionObj);
     $inject.replace('simple-git/promise', gitFunctStub);
@@ -45,6 +29,7 @@ function defaultPrepare(dir) {
 
     return {
         gitFunctStub,
+        gitFunctionObj,
         gitRawStub
     }
 }
@@ -76,7 +61,7 @@ describe('Repositories list should work as expected', () => {
     });
     it('Should remind when branch is changed', async () => {
         const dir = 'somedirname';
-        defaultPrepare(dir);
+        const {gitFunctionObj} = defaultPrepare(dir);
         const {RepositoriesList} = require("~/src/services/RepositoriesList");
         await RepositoriesList.createFromDir(dir);
         let called = false;
@@ -104,7 +89,7 @@ describe('Repositories list should work as expected', () => {
     });
     it('Should serialize and deserialize correnctly', async () => {
         const dir = 'somedirname';
-        defaultPrepare(dir);
+        const {gitFunctionObj} = defaultPrepare(dir);
         const {RepositoriesList} = require("~/src/services/RepositoriesList");
         let called = false;
         RepositoriesList.onDataRefresh(() => called = true);

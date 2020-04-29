@@ -18,16 +18,15 @@ const store = new Store();
 const dataRefresh = Subscription();
 const switchBranch = Subscription();
 
-let tick = 0;
+let tick = 1;
 
 const repositories = [];
 
 TickerService.subscribeToTick(() => {
     get().forEach((repo) => repo.tick());
-    tick++;
-    if (tick >= Settings.checkForRepoChangeInSeconds)
+    if (++tick >= Settings.checkForRepoChangeInSeconds)
     {
-        tick = 0;
+        tick = 1;
         checkReposForChanges();
         storeData();
     }
@@ -208,7 +207,7 @@ function removeRepo() {
 }
 
 function reset() {
-    tick = 0;
+    tick = 1;
     while(repositories.length) {repositories.pop()};
 }
 
