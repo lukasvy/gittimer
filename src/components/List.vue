@@ -46,11 +46,11 @@
         methods: {
             setBranchesList() {
                 this.branchesList =
-                    this.activeRepo
-                        .getBranches()
-                        .filter(part =>
-                                    !part.isCurrent() &&
-                                    ListSearchService.itemPassesFilter(part.getName()))
+                    Object.freeze(this.activeRepo.getBranches())
+                        .filter(
+                            part =>
+                                !part.isCurrent() &&
+                                ListSearchService.itemPassesFilter(part.getName()))
                         .sort((a, b) => {
                             if (!b.getLastAccess() && a.getLastAccess())
                             {
@@ -61,12 +61,11 @@
             },
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
-                if (!this.activeRepo)
+                if (!RepositoriesList.get().length)
                 {
                     return this.$router.push('nothing');
                 }
                 this.setBranchesList();
-
             }
         },
         watch  : {
@@ -80,12 +79,8 @@
             this.activateRepo();
         },
         destroyed() {
-            if (this.window)
-            {
-                this.window.removeEventListener('keyup', this.listenToKeys);
-            }
-            this.removeOnDataRefresh ?  this.removeOnDataRefresh() : undefined;
-            this.removeOnSwitch ?  this.removeOnSwitch() : undefined;
+            this.removeOnDataRefresh ? this.removeOnDataRefresh() : undefined;
+            this.removeOnSwitch ? this.removeOnSwitch() : undefined;
             this.searchSubRemove ? this.searchSubRemove() : undefined;
         }
     }

@@ -118,10 +118,7 @@ function createWindow() {
     });
 
     myWindow.on('blur', e => {
-        if (!process.env.NODE_ENV.match(/development/))
-        {
-            myWindow.webContents.send('lost-focus');
-        }
+        myWindow.webContents.send('lost-focus');
     });
 
     const contextMenu = Menu.buildFromTemplate(
@@ -141,7 +138,8 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        if (!myWindow.isVisible() && !showing && !hiding) {
+        if (!myWindow.isVisible() && !showing && !hiding)
+        {
             showWindow(myWindow, tray);
         }
     });

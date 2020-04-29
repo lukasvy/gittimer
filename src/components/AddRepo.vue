@@ -1,6 +1,6 @@
 <template>
     <div class="git-content">
-        <div class="ui middle aligned divided medium">
+        <div class="ui middle aligned divided medium add-repo-content">
             <div class="ui icon header">
                 <i class="code branch icon"></i>
                 <p></p>
@@ -57,6 +57,7 @@
         align-content: center;
         text-align: center;
         justify-content: center;
+        margin: 10px !important
     }
 
     .git-content {
@@ -67,6 +68,10 @@
         height: 100%;
         padding-top: 5px;
         padding-bottom: 5px;
+    }
+
+    .add-repo-content {
+        padding : 10px;
     }
 
     .item-container {

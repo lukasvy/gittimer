@@ -126,7 +126,40 @@ describe('Repositories list should work as expected', () => {
         RepositoriesList.removeRepo(RepositoriesList.get()[1]);
         expect(RepositoriesList.get().length, 'Remove first repo').to.equal(1);
         expect(RepositoriesList.get()[0].getDir(), 'Check dir of repo that was left').to.equal('somedirname');
+        expect(RepositoriesList.get()[0].isActive(), 'Check that other repo is activate after first repo deletion').to.equal(true);
         RepositoriesList.removeRepo();
         expect(RepositoriesList.get().length, 'Remove second repo').to.equal(0);
+    });
+    it('Should not add the same repo twice', async () => {
+        const dir = 'somedirname';
+        defaultPrepare(dir);
+        const {RepositoriesList} = require("~/src/services/RepositoriesList");
+        let called = false;
+        RepositoriesList.onDataRefresh(() => called = true);
+        await RepositoriesList.createFromDir(dir);
+        await RepositoriesList.createFromDir(dir);
+        expect(RepositoriesList.get().length).to.equal(1);
+    });
+    it('When switching branch the repo of that branch should become active', async () => {
+        const dir = 'somedirname';
+        const dir2 = 'somedirname2';
+        defaultPrepare(dir);
+        const {RepositoriesList} = require("~/src/services/RepositoriesList");
+        await RepositoriesList.createFromDir(dir);
+        defaultPrepare(dir2);
+        await RepositoriesList.createFromDir(dir2);
+        expect(RepositoriesList.getActiveRepo().getDir()).to.equal(dir2);
+        RepositoriesList.get()[0].addBranch(
+            {
+                name   : 'test',
+                current: true
+            });
+        RepositoriesList.get()[0].addBranch(
+            {
+                name   : 'test2',
+                current: false
+            });
+        RepositoriesList.switchActiveBranch(RepositoriesList.get()[0], 'test2');
+        expect(RepositoriesList.getActiveRepo().getDir(), 'Active repo after branch switching').to.equal(dir);
     });
 });

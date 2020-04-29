@@ -52,8 +52,8 @@
   "dependencies": {
     "@babel/plugin-proposal-throw-expressions": "^7.8.3",
     "@babel/polyfill": "^7.8.7",
-    "asmcrypto-lite": "^1.1.0",
     "babel-loader": "^8.0.6",
+    "crypto-js": "^4.0.0",
     "electron-positioner": "^4.1.0",
     "electron-store": "^5.1.1",
     "moment": "^2.24.0",

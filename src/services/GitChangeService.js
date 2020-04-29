@@ -1,9 +1,9 @@
 import {Subscription} from "~/src/services/Observable";
 import {TickerService} from "~/src/services/TickerService";
 import {Settings} from "~/src/services/SettingsService";
-import {timers} from "sinon";
-
-const asmCrypto = require('asmcrypto-lite');
+import sha256 from 'crypto-js/sha256';
+import hmacSHA512 from 'crypto-js/hmac-sha512';
+import Base64 from 'crypto-js/enc-base64';
 const $injector = require('~/src/services/Injector');
 const originalGit = require('simple-git/promise');
 const git = (dir) => {
@@ -29,9 +29,11 @@ TickerService.subscribeToTick(() => {
 async function check(sub) {
     return git(sub.dir)
         .diff()
-        .then((diffText) => {
+        .then(async (diffText) => {
             // use encrypted text
-            const changedText = asmCrypto.SHA256.hex(diffText);
+            const hashDigest = sha256(diffText);
+            const privateKey = '123';
+            const changedText = Base64.stringify(hmacSHA512(hashDigest, privateKey));
             if (!sub.diff) {
                 sub.diff = changedText
             } else {

@@ -32,6 +32,16 @@ TickerService.subscribeToTick(() => {
     }
 });
 
+function switchActiveRepo(repo) {
+    get().forEach(r=>{
+        if (r === repo) {
+            r.setIsActive(true)
+        } else {
+            r.setIsActive(false)
+        }
+    });
+    dataRefresh.trigger();
+}
 /**
  * @param repo
  * @param toBranchName
@@ -46,6 +56,7 @@ function switchActiveBranch(repo, toBranchName) {
                                current: false
                            });
         }
+        switchActiveRepo(repo);
         repo.switchCurrentBranchByName(toBranchName);
         switchBranch.trigger(toBranchName);
         dataRefresh.trigger();
@@ -156,6 +167,12 @@ async function createFromDir(dir) {
                                       {
                                           getActiveRepo().setIsActive(false);
                                       }
+                                      const existingRepo = get().find(part => part.getDir() === dir);
+                                      if (existingRepo) {
+                                          existingRepo.setIsActive(true);
+                                          return;
+                                      }
+
                                       const repoData = new Repository(data[1], dir)
                                           .setLatestCommit(data[2].latest)
                                           .setIsActive(true);
@@ -206,9 +223,13 @@ function removeRepo(repo) {
     let index = 0;
     const repoIndex = get().lastIndexOf(repo);
     if (repo && repoIndex > -1) {
+        repo.setIsActive(false);
         index = repoIndex;
     }
     repositories.splice(index, 1);
+    if (repositories.length) {
+        repositories[0].setIsActive(true);
+    }
     storeData();
     dataRefresh.trigger();
 }
@@ -221,11 +242,13 @@ function reset() {
 export const RepositoriesList = {
     createFromDir,
     createFromData,
+    switchActiveBranch,
     storeData,
     onDataRefresh : dataRefresh.subscribe,
     onSwitchBranch : switchBranch.subscribe,
     removeRepo,
     getActiveRepo,
+    switchActiveRepo,
     getActiveBranch,
     reset,
     get
