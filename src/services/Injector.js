@@ -8,7 +8,7 @@ $inject.inject = (name, requiredModule) => {
     }
     return requiredModule;
 };
-$inject.replace = function (name, by) {
+$inject.replace = function (name, by, note) {
     if (!$inject._replacements)
     {
         $inject._replacements = {};
@@ -18,11 +18,11 @@ $inject.replace = function (name, by) {
     return $inject;
 };
 $inject.revert = function (name) {
-    if ($inject._replacements[name])
+    if ($inject._replacements && $inject._replacements[name])
     {
         delete $inject._replacements[name];
+        replacementSubscriptions.trigger(name, undefined);
     }
-    replacementSubscriptions.trigger(name, undefined);
     return $inject;
 };
 $inject.subscribe = replacementSubscriptions.subscribe;

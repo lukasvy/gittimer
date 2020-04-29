@@ -55,7 +55,7 @@ module.exports = [
         resolve: {
             extensions: [".vue", ".js", ".scss"],
             alias     : {
-                "@"                 : './src',
+                "@"                 : path.resolve(__dirname, 'src'),
                 "electron"          : path.resolve(__dirname, "test/mocks/electron.mock.js"),
                 "electron-store"    : path.resolve(__dirname, "test/mocks/electron-store.mock.js"),
                 "fs"                : path.resolve(__dirname, "test/mocks/fs.mock.js"),

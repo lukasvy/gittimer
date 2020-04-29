@@ -1,13 +1,9 @@
-const git = {
-    log   : () => git.log,
-    status: () => git.status,
-    branch: () => git.branch,
-    raw   : () => git.raw,
-};
-const defaultGit = {
-    defaultValues: git
-};
-let defaultGitFunct = function (dir) {
-    return defaultGit.defaultValues;
-};
-module.exports = defaultGitFunct;
+module.exports = function (dir) {
+    return {
+        log   : () => Promise.resolve(true),
+        status: () => Promise.resolve(true),
+        branch: () => Promise.resolve(true),
+        raw   : () => Promise.resolve(true),
+        diff  : () => Promise.resolve('test'),
+    };
+};;

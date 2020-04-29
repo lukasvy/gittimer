@@ -5,14 +5,14 @@ const VueLoaderPlugin = require("vue-loader/lib/plugin");
 
 module.exports = [
     {
-        mode  : process.env.NODE_ENV === 'development' ? 'development' : 'production',
-        entry : ['@babel/polyfill', './src/electron.js'],
-        target: 'electron-main',
-        node  : {
+        mode   : process.env.NODE_ENV === 'development' ? 'development' : 'production',
+        entry  : ['@babel/polyfill', './src/electron.js'],
+        target : 'electron-main',
+        node   : {
             __dirname : false,
             __filename: false
         },
-        module: {
+        module : {
             rules: [
                 {
                     test   : /\.js$/,
@@ -35,7 +35,7 @@ module.exports = [
                     use : "url-loader"
                 }]
         },
-        output: {
+        output : {
             path    : __dirname + '/dist',
             filename: 'electron.js'
         },
@@ -92,7 +92,7 @@ module.exports = [
         resolve: {
             extensions: [".vue", ".js", ".scss"],
             alias     : {
-                "@": './src'
+                "@": path.resolve(__dirname, 'src'),
             }
         },
 

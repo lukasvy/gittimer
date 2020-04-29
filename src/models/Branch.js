@@ -1,5 +1,6 @@
 import {humanReadableSeconds} from '~/src/services/DateTimeService';
 import * as moment from 'moment';
+import {Settings} from "@/services/SettingsService";
 
 export class Branch
 {
@@ -8,20 +9,11 @@ export class Branch
         this._current = current;
         this._timeSpent = 0;
         this._lastAccessed = undefined;
+        this._tempTime = 0;
     }
 
     getName() {
         return this._name;
-    }
-
-    setLastAccessed(value) {
-        this._lastAccessed = value;
-        return this;
-    }
-
-    setTimeSpent(value) {
-        this._timeSpent = value;
-        return this;
     }
 
     setIsCurrent(value) {
@@ -30,6 +22,7 @@ export class Branch
             this._current = true;
         } else
         {
+            this._tempTime = 0;
             this._lastAccessed = new Date();
             this._current = false;
         }
@@ -40,15 +33,17 @@ export class Branch
     }
 
     tick() {
-        this._timeSpent++;
+        if (++this._tempTime >= Settings.inactivityTimeInSeconds) {
+            this._tempTime = 0;
+        }
     }
 
     getTimeSpent() {
-        return this._timeSpent;
+        return this._timeSpent + this._tempTime;
     }
 
     getFormattedTimeSpent() {
-        return humanReadableSeconds(this._timeSpent, true);
+        return humanReadableSeconds(this.getTimeSpent(), true);
     }
 
     getLastAccess() {
@@ -59,10 +54,16 @@ export class Branch
         return this._lastAccessed ? moment(this._lastAccessed).format('YYYY-MM-DD HH:mm:ss') : '';
     }
 
+    fileChanged() {
+        this._lastAccessed = new Date();
+        this._timeSpent += this._tempTime;
+        this._tempTime = 0;
+    }
+
     serialize() {
         return {
             timeSpent   : this._timeSpent,
-            lastAccessed: this._lastAccessed,
+            lastAccessed: this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
             current     : this._current,
             name        : this._name
         }
@@ -74,7 +75,7 @@ export class Branch
      */
     fill(data) {
         this._timeSpent = data.timeSpent;
-        this._lastAccessed = data.lastAccessed;
+        this._lastAccessed = new Date(data.lastAccessed);
         return this;
     }
 

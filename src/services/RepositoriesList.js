@@ -1,36 +1,41 @@
 const $injector = require('~/src/services/Injector');
 // https://github.com/steveukx/git-js
-const git = $injector.inject('simple-git/promise', require('simple-git/promise'));
+const originalGit = require('simple-git/promise');
+const git = (dir) => {
+    return $injector.inject('simple-git/promise', originalGit)(dir);
+};
 const fs = require("fs");
 const path = require('path');
 const Store = require('electron-store');
 
 import {Subscription} from "~/src/services/Observable";
 import {DialogService} from './DialogService';
-
+import {Settings} from "~/src/services/SettingsService";
+import {Repository} from "../models/Repository";
+import {TickerService} from "./TickerService";
 
 const store = new Store();
 const dataRefresh = Subscription();
 const switchBranch = Subscription();
 
-import {Repository} from "../models/Repository";
-import {TickerService} from "./TickerService";
-
-let tick = 0;
+let tick = 1;
 
 const repositories = [];
 
 TickerService.subscribeToTick(() => {
     get().forEach((repo) => repo.tick());
-    tick++;
-    if (tick === 5)
+    if (++tick >= Settings.checkForRepoChangeInSeconds)
     {
-        tick = 0;
+        tick = 1;
         checkReposForChanges();
         storeData();
     }
 });
 
+/**
+ * @param repo
+ * @param toBranchName
+ */
 function switchActiveBranch(repo, toBranchName) {
     if (repo.getCurrentBranch().getName() !== toBranchName)
     {
@@ -43,6 +48,7 @@ function switchActiveBranch(repo, toBranchName) {
         }
         repo.switchCurrentBranchByName(toBranchName);
         switchBranch.trigger(toBranchName);
+        dataRefresh.trigger();
     }
 }
 
@@ -61,6 +67,7 @@ function deleteRepo(repo) {
     if (index > -1)
     {
         repositories.splice(index, 1);
+        dataRefresh.trigger();
     }
 }
 
@@ -140,16 +147,18 @@ async function createFromDir(dir) {
     {
         throw new Error(`${dir} is not a directory`);
     }
-    let active = true;
     return Promise.all([
                            checkIsGitDir(dir),
                            Promise.all([getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
                                   .then(data => {
+                                      if (getActiveRepo())
+                                      {
+                                          getActiveRepo().setIsActive(false);
+                                      }
                                       const repoData = new Repository(data[1], dir)
                                           .setLatestCommit(data[2].latest)
-                                          .setIsActive(active);
-                                      active = false;
+                                          .setIsActive(true);
                                       data[0].all.forEach((branch) => {
                                           repoData.addBranch(
                                               {
@@ -161,7 +170,7 @@ async function createFromDir(dir) {
                                       return repoData;
 
                                   })
-                       ]);
+                       ]).finally(dataRefresh.trigger);
 }
 
 function createFromData() {
@@ -169,12 +178,12 @@ function createFromData() {
     if (data)
     {
         data.map(part => Repository.unserialize(part)).forEach(part => get().push(part));
+        dataRefresh.trigger();
     }
 }
 
 function storeData() {
     store.set('gittimer-data', get().map(repo => repo.serialize()));
-    dataRefresh.trigger();
 }
 
 /**
@@ -193,13 +202,19 @@ function getActiveBranch() {
         .find(part => part.isCurrent())
 }
 
-function removeRepo() {
-    repositories.splice(0, 1);
+function removeRepo(repo) {
+    let index = 0;
+    const repoIndex = get().lastIndexOf(repo);
+    if (repo && repoIndex > -1) {
+        index = repoIndex;
+    }
+    repositories.splice(index, 1);
     storeData();
+    dataRefresh.trigger();
 }
 
 function reset() {
-    tick = 0;
+    tick = 1;
     while(repositories.length) {repositories.pop()};
 }
 
