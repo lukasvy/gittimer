@@ -110,5 +110,23 @@ describe('Repositories list should work as expected', () => {
         expect(RepositoriesList.get()[0].getBranches().length).to.equal(3);
         expect(JSON.stringify(serialized) === JSON.stringify(serialized2), 'All serialized data for repo is fine').to.equal(true);
         expect(JSON.stringify(serializedBranch) === JSON.stringify(serializedBranch2), 'All serialized data for branch is fine').to.equal(true);
-    })
+    });
+    it('Should handle multiple repositories', async () => {
+        const dir = 'somedirname';
+        const dir2 = 'somedirname2';
+        defaultPrepare(dir);
+        const {RepositoriesList} = require("~/src/services/RepositoriesList");
+        let called = false;
+        RepositoriesList.onDataRefresh(() => called = true);
+        await RepositoriesList.createFromDir(dir);
+        defaultPrepare(dir2);
+        await RepositoriesList.createFromDir(dir2);
+        expect(RepositoriesList.get().length, 'Two repos should be added to list').to.equal(2);
+        expect(RepositoriesList.getActiveRepo().getDir(), 'Active repo should be named somedirname2').to.equal(dir2);
+        RepositoriesList.removeRepo(RepositoriesList.get()[1]);
+        expect(RepositoriesList.get().length, 'Remove first repo').to.equal(1);
+        expect(RepositoriesList.get()[0].getDir(), 'Check dir of repo that was left').to.equal('somedirname');
+        RepositoriesList.removeRepo();
+        expect(RepositoriesList.get().length, 'Remove second repo').to.equal(0);
+    });
 });

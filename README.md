@@ -3,6 +3,12 @@ Electron program that will count time spend on specific branch.
 
 Time will be counted only on the repos that files were changed periodically. If no changes were made those branches and repos will not have their work time changed.
 
+## Features
+* count time spent on specific repo and branch and present it to the user in human readable form
+* keep data stored in user folder so even when application is deleted data is kept safe
+* watch file changes based on git diff to add time to only active repos and branches
+* quick search through all branches right via list view
+
 ## Built With
 * [Electron](https://www.electronjs.org/)
 * [Vue](https://www.vuejs.org/)

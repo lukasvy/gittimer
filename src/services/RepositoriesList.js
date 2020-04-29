@@ -147,16 +147,18 @@ async function createFromDir(dir) {
     {
         throw new Error(`${dir} is not a directory`);
     }
-    let active = true;
     return Promise.all([
                            checkIsGitDir(dir),
                            Promise.all([getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
                                   .then(data => {
+                                      if (getActiveRepo())
+                                      {
+                                          getActiveRepo().setIsActive(false);
+                                      }
                                       const repoData = new Repository(data[1], dir)
                                           .setLatestCommit(data[2].latest)
-                                          .setIsActive(active);
-                                      active = false;
+                                          .setIsActive(true);
                                       data[0].all.forEach((branch) => {
                                           repoData.addBranch(
                                               {
@@ -200,8 +202,13 @@ function getActiveBranch() {
         .find(part => part.isCurrent())
 }
 
-function removeRepo() {
-    repositories.splice(0, 1);
+function removeRepo(repo) {
+    let index = 0;
+    const repoIndex = get().lastIndexOf(repo);
+    if (repo && repoIndex > -1) {
+        index = repoIndex;
+    }
+    repositories.splice(index, 1);
     storeData();
     dataRefresh.trigger();
 }
