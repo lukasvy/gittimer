@@ -60,12 +60,13 @@
     }
 
     .git-content {
-        padding: 10px;
         background-color: #f4f4f4;
         border-bottom: 1px solid #e8e8e8;
         overflow-y: overlay;
         flex: 1 1 auto;
         height: 100%;
+        padding-top: 5px;
+        padding-bottom: 5px;
     }
 
     .item-container {

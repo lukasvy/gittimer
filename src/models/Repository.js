@@ -129,7 +129,7 @@ export class Repository
      */
     fill(data) {
         this._initialised = new Date(data.initialised);
-        this._latestCommit = data.latestCommit ? new Date(data.latestCommit) : undefined;
+        this._latestCommit = data.latestCommit;
         this._lastAccessed = data.lastAccessed ? new Date(data.lastAccessed) : undefined;
         this._isActive = data.isActive;
         this._timeSpent = data.timeSpent;
@@ -141,7 +141,7 @@ export class Repository
     serialize() {
         return {
             initialised : this._initialised.toJSON(),
-            latestCommit: this._latestCommit ? this._latestCommit.toJSON() : undefined,
+            latestCommit: this._latestCommit,
             lastAccessed: this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
             isActive    : this._isActive,
             timeSpent   : this._timeSpent,

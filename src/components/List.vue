@@ -107,11 +107,10 @@
     .item {
         display: flex;
         flex-direction: row;
-        padding-bottom: 5px;
-        padding-top: 5px;
         align-items: center;
         border-bottom: 1px solid #e2e0e0;
-        max-width: 325px;
+        width: 100%;
+        padding: 5px 10px;
     }
 
     .content {
@@ -132,12 +131,13 @@
     }
 
     .git-content {
-        padding: 10px;
         background-color: #f4f4f4;
         border-bottom: 1px solid #e8e8e8;
         overflow-y: overlay;
         flex: 1 1 auto;
         height: 100%;
+        padding-top: 5px;
+        padding-bottom: 5px;
     }
 
     .time-spent {
