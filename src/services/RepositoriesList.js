@@ -47,7 +47,7 @@ function switchActiveRepo(repo) {
  * @param toBranchName
  */
 function switchActiveBranch(repo, toBranchName) {
-    if (repo.getCurrentBranch().getName() !== toBranchName)
+    if (repo.getCurrentBranch() && repo.getCurrentBranch().getName() !== toBranchName)
     {
         if (!repo.getBranchByName(toBranchName))
         {
@@ -215,8 +215,7 @@ function getActiveRepo() {
 }
 
 function getActiveBranch() {
-    return (getActiveRepo() ? getActiveRepo().getBranches() : [])
-        .find(part => part.isCurrent())
+    return (getActiveRepo() ? getActiveRepo().getCurrentBranch() : undefined)
 }
 
 function removeRepo(repo) {

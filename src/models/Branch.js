@@ -33,7 +33,8 @@ export class Branch
     }
 
     tick() {
-        if (++this._tempTime >= Settings.inactivityTimeInSeconds) {
+        if (++this._tempTime >= Settings.inactivityTimeInSeconds)
+        {
             this._tempTime = 0;
         }
     }

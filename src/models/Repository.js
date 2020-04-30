@@ -13,6 +13,7 @@ export class Repository
         this._tempTime = 0;
         this._lastAccessed = undefined;
         this._isActive = false;
+        this._currentBranch = undefined;
     }
 
     delete(value) {
@@ -29,11 +30,16 @@ export class Repository
     }
 
     addBranch(data) {
-        if (data.current && this.getCurrentBranch())
+        const branch = new Branch(data.name, data.current);
+        if (branch.isCurrent())
         {
-            this.getCurrentBranch().setIsCurrent(false);
+            if (this.getCurrentBranch())
+            {
+                this.getCurrentBranch().setIsCurrent(false);
+            }
+            this._currentBranch = branch;
         }
-        this._branches.push(new Branch(data.name, data.current));
+        this._branches.push(branch);
     }
 
     getBranchByName(name) {
@@ -49,7 +55,7 @@ export class Repository
     }
 
     getCurrentBranch() {
-        return this._branches.find((branch) => branch.isCurrent());
+        return this._currentBranch;
     }
 
     getLatestCommit() {
@@ -71,14 +77,16 @@ export class Repository
     }
 
     switchCurrentBranchByName(name) {
-        let current = this.getCurrentBranch();
-        if (this.getBranchByName(name))
+        const current = this.getCurrentBranch();
+        const branch = this.getBranchByName(name);
+        if (branch)
         {
             if (current)
             {
                 current.setIsCurrent(false);
             }
-            this.getBranchByName(name).setIsCurrent(true);
+            branch.setIsCurrent(true);
+            this._currentBranch = branch;
         }
         return this;
     }
@@ -134,7 +142,13 @@ export class Repository
         this._isActive = data.isActive;
         this._timeSpent = data.timeSpent;
         this._deleted = data.deleted ? new Date(data.deleted) : undefined;
-        this._branches = data.branches.map(part => Branch.unserialize(part));
+        this._branches = data.branches.map(part => {
+            const branch = Branch.unserialize(part);
+            if (branch.isCurrent()) {
+                this._currentBranch = branch;
+            }
+            return branch;
+        });
         return this;
     }
 
