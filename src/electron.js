@@ -118,7 +118,7 @@ function createWindow() {
     });
 
     myWindow.on('blur', e => {
-        myWindow.webContents.send('lost-focus');
+        // myWindow.webContents.send('lost-focus');
     });
 
     const contextMenu = Menu.buildFromTemplate(

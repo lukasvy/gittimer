@@ -2,28 +2,7 @@
     <div class="git-content">
         <div class="ui middle aligned divided list medium item-container">
             <div class="scrollable-content">
-                <div class="item" v-for="branch in branchesList" :key="branch.getName()">
-                    <i class="ui icon code branch padded-icon"></i>
-                    <div class="content">
-                        <div class="header text-overflow">
-                            {{branch.getName()}}
-                        </div>
-                        <div class="time-spent" v-if="!branch.getFormattedTimeSpent()">
-                            <small>No time recorder yet</small>
-                        </div>
-                        <div class="time-spent" v-if="branch.getFormattedTimeSpent()">
-                            <small>
-                                {{branch.getFormattedTimeSpent() ? 'Time spent : '+
-                                branch.getFormattedTimeSpent() :
-                                ''}}
-                            </small> |
-                            <small>
-                                {{branch.getFormattedLastAccess() ? 'Last access : '+
-                                branch.getFormattedLastAccess() : ''}}
-                            </small>
-                        </div>
-                    </div>
-                </div>
+                <Branch v-for="branch in branchesList" :key="branch.getName()" :data="branch"></Branch>
             </div>
         </div>
     </div>
@@ -32,32 +11,37 @@
 <script>
     import {RepositoriesList} from "~/src/services/RepositoriesList";
     import {ListSearchService} from "~/src/services/ListSearchService";
-
-    const {remote} = require('electron');
+    import Branch from "@/components/Branch";
+    import {fetch} from "@/services/FetchRepositoryListService";
 
     export default {
-        name   : "List",
-        data   : function () {
+        name      : "List",
+        components: {
+            Branch,
+        },
+        data      : function () {
             return {
                 branchesList: [],
-                search      : []
+                search      : [],
+                fetch       : fetch,
+                Branch      : Branch
             }
         },
-        methods: {
+        methods   : {
             setBranchesList() {
                 this.branchesList =
                     Object.freeze(this.activeRepo.getBranches())
-                        .filter(
-                            part =>
-                                !part.isCurrent() &&
-                                ListSearchService.itemPassesFilter(part.getName()))
-                        .sort((a, b) => {
-                            if (!b.getLastAccess() && a.getLastAccess())
-                            {
-                                return -1;
-                            }
-                            return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
-                        });
+                          .filter(
+                              part =>
+                                  !part.isCurrent() &&
+                                  ListSearchService.itemPassesFilter(part.getName()))
+                          .sort((a, b) => {
+                              if (!b.getLastAccess() && a.getLastAccess())
+                              {
+                                  return -1;
+                              }
+                              return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
+                          });
             },
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
@@ -68,7 +52,7 @@
                 this.setBranchesList();
             }
         },
-        watch  : {
+        watch     : {
             '$route': 'activateRepo'
         },
         created() {
@@ -93,21 +77,6 @@
         height: 100%;
     }
 
-    .text-overflow {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        border-bottom: 1px solid #e2e0e0;
-        width: 100%;
-        padding: 5px 10px;
-    }
-
     .content {
         display: flex;
         flex-direction: column;
@@ -119,12 +88,6 @@
         padding-left: 6px;
     }
 
-    i.padded-icon {
-        /*padding-top: 5px;*/
-        margin-top: -7px !important;
-        font-size: 1.2em !important;
-    }
-
     .git-content {
         background-color: #f4f4f4;
         border-bottom: 1px solid #e8e8e8;
@@ -133,9 +96,5 @@
         height: 100%;
         padding-top: 5px;
         padding-bottom: 5px;
-    }
-
-    .time-spent {
-        font-size: 0.8em;
     }
 </style>

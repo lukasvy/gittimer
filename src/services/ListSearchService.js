@@ -9,7 +9,7 @@ KeyboardListener.listen(event => {
     if (event.key === 'Backspace')
     {
         search.pop();
-        change.trigger();
+        change.trigger(search.join(''));
     } else if (event.key === 'Escape')
     {
         if (getText())
@@ -24,7 +24,7 @@ KeyboardListener.listen(event => {
     } else if (event.key.match(/^[a-z0-9\/\.\\_-]$/i))
     {
         search.push(event.key);
-        change.trigger();
+        change.trigger(search.join(''));
     }
 });
 
@@ -60,6 +60,6 @@ function itemPassesFilter(name) {
 
 function clear() {
     search = [];
-    change.trigger();
+    change.trigger('');
 }
 
