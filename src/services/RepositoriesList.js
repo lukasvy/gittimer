@@ -88,7 +88,7 @@ function repoError(repo, error) {
         deleteRepo(repo);
         storeData();
     }
-    DialogService.showErrorBox('Uh Oh!', error.message)
+    DialogService.showErrorBox('Uh Oh!', error.message, error)
 }
 
 function checkReposForChanges() {
@@ -162,7 +162,7 @@ async function createFromDir(dir) {
                            checkIsGitDir(dir),
                            Promise.all([getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
-                                  .then(data => {
+                                  .then(async data => {
                                       if (getActiveRepo())
                                       {
                                           getActiveRepo().setIsActive(false);
@@ -176,13 +176,7 @@ async function createFromDir(dir) {
                                       const repoData = new Repository(data[1], dir)
                                           .setLatestCommit(data[2].latest)
                                           .setIsActive(true);
-                                      data[0].all.forEach((branch) => {
-                                          repoData.addBranch(
-                                              {
-                                                  name   : branch,
-                                                  current: data[0].branches[branch].current
-                                              })
-                                      });
+                                      await repoData.addBranches(Object.values(data[0].branches));
                                       get().push(repoData);
                                       return repoData;
 

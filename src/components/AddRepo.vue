@@ -44,7 +44,7 @@
                                  }
                                  return dir;
                              })
-                             .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message))
+                             .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message, e))
                              .finally(() => this.loading = false);
             }
         }

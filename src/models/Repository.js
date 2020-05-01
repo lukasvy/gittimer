@@ -1,5 +1,6 @@
 import {Branch} from "./Branch";
 import {Settings} from "@/services/SettingsService";
+import {createCollection} from "@/services/DbService";
 
 export class Repository
 {
@@ -14,6 +15,7 @@ export class Repository
         this._lastAccessed = undefined;
         this._isActive = false;
         this._currentBranch = undefined;
+        this._collection = createCollection(dir);
     }
 
     delete(value) {
@@ -29,6 +31,18 @@ export class Repository
         return this._dir;
     }
 
+    async addBranches(array) {
+        array.forEach((part) => this.addBranch(part));
+        console.log(this._collection.insert);
+        return this._collection.insert(array.map(part => ({
+            name   : part.name,
+            current: part.current
+        }))).then(r=>console.log(r));
+    }
+
+    /**
+     * @param data
+     */
     addBranch(data) {
         const branch = new Branch(data.name, data.current);
         if (branch.isCurrent())
@@ -144,7 +158,8 @@ export class Repository
         this._deleted = data.deleted ? new Date(data.deleted) : undefined;
         this._branches = data.branches.map(part => {
             const branch = Branch.unserialize(part);
-            if (branch.isCurrent()) {
+            if (branch.isCurrent())
+            {
                 this._currentBranch = branch;
             }
             return branch;
