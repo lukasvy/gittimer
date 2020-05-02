@@ -1,10 +1,10 @@
 <template>
     <div class="git-footer">
         <div class="footer-left" @click.prevent="e => list(e)" v-if="listActive && iconsActive">
-            <i class="list alternate icon"></i>
+            <i class="list alternate icon" :style="{'opacity:0.6':loading, 'opacity:1':!loading}"></i>
         </div>
         <div class="footer-rigth" @click.prevent="e => settings(e)" v-if="iconsActive">
-            <i class="cog icon"></i>
+            <i class="cog icon" :style="{'opacity:0.6':loading, 'opacity:1':!loading}"></i>
         </div>
     </div>
 </template>
@@ -20,7 +20,8 @@
         data     : function () {
             return {
                 listActive : false,
-                iconsActive: false
+                iconsActive: false,
+                loading    : false
             }
         },
         created  : function () {
@@ -35,8 +36,24 @@
                 this.listActive = RepositoriesList.get().length > 1;
                 this.iconsActive = (!!RepositoriesList.get().length)
             },
-            settings: SettingsMenuService.openMenu,
-            list    : SettingsMenuService.openList
+            settings(e) {
+                if (this.loading)
+                {
+                    console.log('loading');
+                    return;
+                }
+                this.loading = true;
+                SettingsMenuService.openMenu(e).catch(e=>console.log(e)).finally(() => this.loading = false);
+            },
+            list(e) {
+                if (this.loading)
+                {
+                    console.log('loading');
+                    return;
+                }
+                this.loading = true;
+                SettingsMenuService.openList(e).catch(e=>console.log(e)).finally(() => this.loading = false);
+            }
         }
     }
 </script>

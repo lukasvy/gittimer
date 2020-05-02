@@ -46,18 +46,18 @@ function switchActiveRepo(repo) {
  * @param repo
  * @param toBranchName
  */
-function switchActiveBranch(repo, toBranchName) {
+async function switchActiveBranch(repo, toBranchName) {
     if (repo.getCurrentBranch() && repo.getCurrentBranch().getName() !== toBranchName)
     {
-        if (!repo.getBranchByName(toBranchName))
+        if (!await repo.getBranchByName(toBranchName))
         {
-            repo.addBranch({
+            await repo.addBranch({
                                name   : toBranchName,
                                current: false
                            });
         }
         switchActiveRepo(repo);
-        repo.switchCurrentBranchByName(toBranchName);
+        await repo.switchCurrentBranchByName(toBranchName);
         switchBranch.trigger(toBranchName);
         dataRefresh.trigger();
     }
@@ -73,10 +73,11 @@ async function getLogs(dir) {
         .catch(e => repoError(get().find(repo => repo.getDir() === dir), e));
 }
 
-function deleteRepo(repo) {
+async function deleteRepo(repo) {
     const index = repositories.findIndex(repo);
     if (index > -1)
     {
+        await repo.cleanup();
         repositories.splice(index, 1);
         dataRefresh.trigger();
     }
@@ -184,13 +185,23 @@ async function createFromDir(dir) {
                        ]).finally(dataRefresh.trigger);
 }
 
-function createFromData() {
+/**
+ * @returns {Promise<unknown[]|boolean>}
+ */
+async function createFromData() {
+    if (get().length) {
+        return Promise.resolve(true);
+    }
     const data = store.get('gittimer-data');
     if (data)
     {
-        data.map(part => Repository.unserialize(part)).forEach(part => get().push(part));
-        dataRefresh.trigger();
+        await Promise.all(data.map(async (part) => {
+            const repo = await Repository.unserialize(part);
+            get().push(repo);
+        }));
     }
+    dataRefresh.trigger();
+    return Promise.resolve(true);
 }
 
 function storeData() {
@@ -212,7 +223,11 @@ function getActiveBranch() {
     return (getActiveRepo() ? getActiveRepo().getCurrentBranch() : undefined)
 }
 
-function removeRepo(repo) {
+/**
+ * @param repo
+ * @returns {Promise<void>}
+ */
+async function removeRepo(repo) {
     let index = 0;
     const repoIndex = get().lastIndexOf(repo);
     if (repo && repoIndex > -1) {
@@ -223,6 +238,7 @@ function removeRepo(repo) {
     if (repositories.length) {
         repositories[0].setIsActive(true);
     }
+    await repo.cleanup();
     storeData();
     dataRefresh.trigger();
 }

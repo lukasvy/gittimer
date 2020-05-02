@@ -2,7 +2,13 @@
     <div class="git-content">
         <div class="ui middle aligned divided list medium item-container">
             <div class="scrollable-content">
-                <Branch v-for="branch in branchesList" :key="branch.getName()" :data="branch"></Branch>
+                <RecyclerView
+                        ref="RecyclerView"
+                        :prerender="30"
+                        :fetch="(limit, skip) => fetch(undefined, limit, skip)"
+                        :item="Branch"
+                        @inited="initView"
+                ></RecyclerView>
             </div>
         </div>
     </div>
@@ -13,6 +19,7 @@
     import {ListSearchService} from "~/src/services/ListSearchService";
     import Branch from "@/components/Branch";
     import {fetch} from "@/services/FetchRepositoryListService";
+    import InfiniteLoading from 'vue-infinite-loading';
 
     export default {
         name      : "List",
@@ -23,25 +30,24 @@
             return {
                 branchesList: [],
                 search      : [],
+                repos       : [],
                 fetch       : fetch,
-                Branch      : Branch
+                Branch      : Branch,
+                style       : '',
             }
         },
         methods   : {
+            initView() {
+                if (this.$refs.RecyclerView)
+                {
+                }
+                console.log(this.$refs.RecyclerView)
+            },
             setBranchesList() {
-                this.branchesList =
-                    Object.freeze(this.activeRepo.getBranches())
-                          .filter(
-                              part =>
-                                  !part.isCurrent() &&
-                                  ListSearchService.itemPassesFilter(part.getName()))
-                          .sort((a, b) => {
-                              if (!b.getLastAccess() && a.getLastAccess())
-                              {
-                                  return -1;
-                              }
-                              return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
-                          });
+                if (this.$refs.RecyclerView)
+                {
+                    // this.$refs.RecyclerView.init()
+                }
             },
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
@@ -49,6 +55,7 @@
                 {
                     return this.$router.push('nothing');
                 }
+                this.repos = RepositoriesList.get();
                 this.setBranchesList();
             }
         },
@@ -71,6 +78,14 @@
 </script>
 
 <style>
+    .recyclerview-container {
+        height: calc(76vh - 17px);;
+    }
+
+    .recyclerview {
+        background-color: #f4f4f4 !important;
+    }
+
     .item-container {
         display: flex;
         flex-direction: column;

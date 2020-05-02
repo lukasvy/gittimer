@@ -35,6 +35,7 @@ export const ListSearchService =
                      clear,
                      onClearFinished: clearFinished.subscribe,
                      getText,
+                     getSearchReg,
                      itemPassesFilter
                  };
 
@@ -52,10 +53,11 @@ function itemPassesFilter(name) {
     {
         return true;
     }
-    return !!name.match(
-        RegExp(search.join('').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-    return !!search.join('').match(
-        RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+    return !!name.match(getSearchReg());
+}
+
+function getSearchReg () {
+    return RegExp(search.join('').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
 }
 
 function clear() {

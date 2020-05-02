@@ -9,6 +9,7 @@ export class Branch
         this._current = current;
         this._timeSpent = 0;
         this._lastAccessed = undefined;
+        this._lastAccessedSeconds = undefined;
         this._tempTime = 0;
     }
 
@@ -26,6 +27,7 @@ export class Branch
             this._lastAccessed = new Date();
             this._current = false;
         }
+        return this;
     }
 
     isCurrent() {
@@ -57,16 +59,18 @@ export class Branch
 
     fileChanged() {
         this._lastAccessed = new Date();
+        this._lastAccessedSeconds = new Date().getTime();
         this._timeSpent += this._tempTime;
         this._tempTime = 0;
     }
 
     serialize() {
         return {
-            timeSpent   : this._timeSpent,
-            lastAccessed: this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
-            current     : this._current,
-            name        : this._name
+            timeSpent          : this._timeSpent || 0,
+            lastAccessedSeconds: this._lastAccessedSeconds || 0,
+            lastAccessed       : this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
+            current            : this._current || false,
+            name               : this._name
         }
 
     }
@@ -75,7 +79,7 @@ export class Branch
      * @param data {Object}
      */
     fill(data) {
-        this._timeSpent = data.timeSpent;
+        this._timeSpent = data.timeSpent || 0;
         this._lastAccessed = new Date(data.lastAccessed);
         return this;
     }

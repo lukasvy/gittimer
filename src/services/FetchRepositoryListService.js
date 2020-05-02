@@ -1,28 +1,31 @@
 import {RepositoriesList} from "@/services/RepositoriesList";
 import {ListSearchService} from "@/services/ListSearchService";
+import {promiseData} from '@/services/DbService';
+import {Branch} from "@/models/Branch";
 
-function query(limit, skip) {
-    return new Promise((resolve, reject) => {
+/**
+ *
+ * @param {Repository} repo
+ * @param {integer} limit
+ * @param {integer} skip
+ * @returns {Promise<Array<Branch>>}
+ */
+function query(repo, limit, skip) {
+    return new Promise(async (resolve, reject) => {
         try
         {
-            const branches = RepositoriesList
-                .getActiveRepo()
-                .getBranches()
-                .filter(
-                    part =>
-                        !part.isCurrent() &&
-                        ListSearchService.itemPassesFilter(part.getName()))
-                .sort((a, b) => {
-                    if (!b.getLastAccess() && a.getLastAccess())
+            const branchesCursor = (repo ? repo : RepositoriesList.getActiveRepo())
+                .getBranchesCursor(
                     {
-                        return -1;
-                    }
-                    return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
-                });
+                        name: ListSearchService.getSearchReg()
+                    });
+            const count = await new Promise((res, rej) => branchesCursor.count(promiseData(res, rej)));
+            const branches = await new Promise(
+                (res, rej) => branchesCursor.skip(skip).limit(limit).toArray(promiseData(res, rej)))
+                .then(data => data.map(part => Branch.unserialize(part)));
             const data = {
-                list : [...branches]
-                    .slice(skip, skip + limit >= branches.length ? undefined : skip + limit),
-                total: branches.length
+                list : branches,
+                total: count
             };
             resolve(data);
         } catch (e)
@@ -32,9 +35,9 @@ function query(limit, skip) {
     })
 }
 
-export const fetch = function (limit, skip) {
+export const fetch = function (repo, limit, skip) {
     limit = Math.max(30, limit);
-    return query(limit, skip)
+    return query(repo, limit, skip)
         .then((data) => {
             return {
                 list : data.list,

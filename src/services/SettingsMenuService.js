@@ -10,73 +10,93 @@ function pause() {
 }
 
 function openList(e) {
-    if (isWorking)
-    {
-        return;
-    }
-    const template = RepositoriesList.get().map(repo => ({
-        label: repo.getName()+(repo.isActive() ? ' ✔' : ''),
-        type : 'normal',
-        click: () => {
-            RepositoriesList.switchActiveRepo(repo);
+    return new Promise((res, rej) => {
+        if (isWorking)
+        {
+            res();
+            return;
         }
-    }));
-    const menu = Menu.buildFromTemplate(template);
-    menu.popup({
-                   x: e.clientX,
-                   y: e.clientY
-               });
+        const template = RepositoriesList.get().map(repo => ({
+            label: repo.getName() + (repo.isActive() ? ' ✔' : ''),
+            type : 'normal',
+            click: () => {
+                RepositoriesList.switchActiveRepo(repo);
+                res();
+            }
+        }));
+        const menu = Menu.buildFromTemplate(template);
+        menu.popup({
+                       x: e.clientX,
+                       y: e.clientY,
+                       callback: () => res()
+                   });
+    });
 }
 
 function openMenu(e) {
-    const template = [{
-        label: 'New repo',
-        type : 'normal',
-        click: () => {
-            if (isWorking)
-            {
-                return;
-            }
-            isWorking = true;
-            DialogService.showOpenDialog(
-                {properties: ['openDirectory']})
-                         .then((dir) => {
-                             if (Array.isArray(dir.filePaths) && dir.filePaths[0])
-                             {
-                                 return RepositoriesList.createFromDir(dir.filePaths[0]);
-                             }
-                             return dir;
-                         })
-                         .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message, e))
-                         .finally(() => isWorking = false);
-        }
-    }, {
-        label: 'Delete active repo',
-        type : 'normal',
-        click: () => {
-            if (isWorking)
-            {
-                return;
-            }
-            isWorking = true;
-            DialogService.showMessageBox(
+    return new Promise((res, rej) => {
+        const template = [{
+            label: 'New repo',
+            type : 'normal',
+            click: () => {
+                if (isWorking)
                 {
-                    type   : 'question',
-                    buttons: ['Yes', 'No'],
-                    title  : 'Confirm',
-                    message: `Are you sure you want to remove ${RepositoriesList.getActiveRepo().getName()} ?`
-                }).then(result => result.response === 0 ?
-                                  RepositoriesList.removeRepo(RepositoriesList.getActiveRepo()) :
-                                  undefined)
-                .finally(() => isWorking = false);
+                    res();
+                    return Promise.resolve(true);
+                }
+                isWorking = true;
+                return DialogService.showOpenDialog(
+                    {properties: ['openDirectory']})
+                                    .then(async (dir) => {
+                                        if (Array.isArray(dir.filePaths) && dir.filePaths[0])
+                                        {
+                                            return await RepositoriesList.createFromDir(dir.filePaths[0]);
+                                        }
+                                        return dir;
+                                    })
+                                    .catch((e) => {
+                                        DialogService.showErrorBox('Uh Oh!', e.message, e);
+                                        rej(e);
+                                    })
+                                    .finally(() => {
+                                        isWorking = false;
+                                        res();
+                                    });
+            }
+        }, {
+            label: 'Delete active repo',
+            type : 'normal',
+            click: () => {
+                if (isWorking)
+                {
+                    res();
+                    return Promise.resolve(true);
+                }
+                isWorking = true;
+                return DialogService.showMessageBox(
+                    {
+                        type   : 'question',
+                        buttons: ['Yes', 'No'],
+                        title  : 'Confirm',
+                        message: `Are you sure you want to remove ${RepositoriesList.getActiveRepo().getName()} ?`
+                    }).then(async result => result.response === 0 ?
+                                            await RepositoriesList.removeRepo(RepositoriesList.getActiveRepo()) :
+                                            Promise.resolve(undefined))
+                                    .catch(rej)
+                                    .finally(() => {
+                                        isWorking = false;
+                                        res();
+                                    });
+            }
         }
-    }
-    ];
-    const menu = Menu.buildFromTemplate(template);
-    menu.popup({
-                   x: e.clientX,
-                   y: e.clientY
-               });
+        ];
+        const menu = Menu.buildFromTemplate(template);
+
+        menu.popup({
+                       x: e.clientX,
+                       y: e.clientY
+                   });
+    });
 }
 
 /**
@@ -86,5 +106,5 @@ export const SettingsMenuService = {
     openMenu,
     openList,
     pause,
-    isPaused : () => isWorking
+    isPaused: () => isWorking
 };

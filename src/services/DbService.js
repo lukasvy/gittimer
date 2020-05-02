@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const Engine = require('tingodb')();
 const appPath = require('electron').remote.app.getAppPath();
-const dbDirName = 'db';
+const dbDirName = 'db' + (process.env.NODE_ENV.match(/test/) ? '-test' : '');
 const dbPath = path.join(appPath, dbDirName);
 const CryptoJS = require("crypto-js");
 import Base64 from 'crypto-js/enc-base64';
@@ -23,7 +23,8 @@ function wrapToPromise(obj, funcName) {
     if (obj[funcName])
     {
         const oldInsert = obj[funcName];
-        obj[funcName] = function (o) {
+        obj[funcName] = function () {
+            const args = arguments;
             return new Promise((resolve, reject) => {
                 const resolveFunc = (err, data) => {
                     if (err)
@@ -32,12 +33,23 @@ function wrapToPromise(obj, funcName) {
                     }
                     return resolve(data);
                 };
-                oldInsert.apply(obj, [o,resolveFunc]);
+
+                oldInsert.apply(obj, [...args, resolveFunc]);
             })
         }
     }
     return obj;
 }
+
+export const promiseData = function(res, rej) {
+    return function(err, p) {
+        if (err) {
+            console.error(err);
+            return rej(err)
+        }
+        return res(p);
+    }
+};
 
 export const createCollection = function (name) {
     const encodedName = CryptoJS.MD5(name).toString();
@@ -48,5 +60,10 @@ export const createCollection = function (name) {
     }
     const collection = db.collection(encodedName);
     wrapToPromise(collection, 'insert');
+    wrapToPromise(collection, 'findOne');
+    wrapToPromise(collection, 'remove');
+    wrapToPromise(collection, 'update');
+    wrapToPromise(collection, 'findAndModify');
+    wrapToPromise(collection, 'findAndRemove');
     return collection;
 };

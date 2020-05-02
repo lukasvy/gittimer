@@ -24,7 +24,7 @@
                 shown : false
             }
         },
-        created() {
+        async created() {
 
             ipcRenderer.on('suspend', () => {
                 RepositoriesList.storeData();
@@ -34,12 +34,12 @@
                 RepositoriesList.storeData();
                 AppService.stop()
             });
-            ipcRenderer.on('unlock-screen', () => {
-                RepositoriesList.createFromData();
+            ipcRenderer.on('unlock-screen', async() => {
+                await RepositoriesList.createFromData();
                 AppService.start()
             });
-            ipcRenderer.on('resuming', () => {
-                RepositoriesList.createFromData();
+            ipcRenderer.on('resuming', async() => {
+                await RepositoriesList.createFromData();
                 AppService.start()
             });
             ipcRenderer.on('quitting', (event, arg) => {
@@ -68,7 +68,7 @@
             }));
 
             AppService.start(window);
-            RepositoriesList.createFromData();
+            await RepositoriesList.createFromData();
 
             this.shown = true;
 

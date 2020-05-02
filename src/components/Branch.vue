@@ -1,5 +1,5 @@
 <template>
-    <div class="item" >
+    <div class="item">
         <i class="ui icon code branch padded-icon"></i>
         <div class="content">
             <div class="header text-overflow">
@@ -25,9 +25,9 @@
 
 <script>
     export default {
-        name: "Branch",
+        name : "Branch",
         props: {
-            data : Object
+            data: Object
         }
     }
 </script>
@@ -40,17 +40,21 @@
         border-bottom: 1px solid #e2e0e0;
         width: 100%;
         padding: 5px 10px;
+        height: 50px;
     }
+
     .text-overflow {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
     i.padded-icon {
         /*padding-top: 5px;*/
         margin-top: -7px !important;
         font-size: 1.2em !important;
     }
+
     .time-spent {
         font-size: 0.8em;
     }

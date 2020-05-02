@@ -1,6 +1,6 @@
 import {Branch} from "./Branch";
 import {Settings} from "@/services/SettingsService";
-import {createCollection} from "@/services/DbService";
+import {createCollection, promiseData} from "@/services/DbService";
 
 export class Repository
 {
@@ -9,7 +9,6 @@ export class Repository
         this._dir = dir;
         this._timeSpent = 0;
         this._initialised = new Date();
-        this._branches = [];
         this._deleted = 0;
         this._tempTime = 0;
         this._lastAccessed = undefined;
@@ -31,43 +30,100 @@ export class Repository
         return this._dir;
     }
 
-    async addBranches(array) {
-        array.forEach((part) => this.addBranch(part));
-        console.log(this._collection.insert);
-        return this._collection.insert(array.map(part => ({
-            name   : part.name,
-            current: part.current
-        }))).then(r=>console.log(r));
+    /**
+     * @param array
+     * @returns {Promise<*>}
+     */
+    addBranches(array) {
+        return this._collection.insert(
+            array.map(part => ({
+                name   : part.name,
+                current: part.current
+            })), {w: 1})
+                   .then(async parts => {
+                       return this._collection.findOne({current: true})
+                                  .then(current => this.switchCurrentBranchByName(current.name));
+                   });
     }
 
     /**
      * @param data
      */
-    addBranch(data) {
+    async addBranch(data) {
         const branch = new Branch(data.name, data.current);
         if (branch.isCurrent())
         {
             if (this.getCurrentBranch())
             {
-                this.getCurrentBranch().setIsCurrent(false);
+                const current = this.getCurrentBranch();
+                await this._collection.update(
+                    {name: current.getName()},
+                    {$set: {current: true}},
+                    {w: 1}
+                );
             }
-            this._currentBranch = branch;
+            this._currentBranch = branch.setIsCurrent(true);
         }
-        this._branches.push(branch);
+        await this._collection.update(
+            {name: data.name},
+            {
+                ...data,
+                current: true
+            },
+            {
+                upsert: true,
+                w     : 1
+            });
     }
 
-    getBranchByName(name) {
-        return this._branches.find(branch => branch.getName() === name);
+    /**
+     * @param name
+     * @returns {Promise<Branch>}
+     */
+    async getBranchByName(name) {
+        return this._collection.findOne({name: name})
+                   .then(data => Branch.unserialize(data));
     }
 
-    getBranches() {
-        return this._branches
+    /**
+     *
+     * @param query
+     * @param opts
+     * @returns {Promise<Array<Branch>>}
+     */
+    getBranchesCursor(query) {
+        const sortedOpts = {sort: {lastAccessedSeconds: -1}};
+        return this._collection.find(query, sortedOpts)
     }
 
+    /**
+     * @returns {Promise<Array<Branch>>}
+     */
+    async getBranches() {
+        return new Promise((r, j) => {
+            this._collection
+                .find({})
+                .toArray(promiseData(r, j))
+        }).then(parts => parts.map(part => Branch.unserialize(part)));
+    }
+
+    /**
+     * @returns {Promise<undefined>}
+     */
+    async cleanup() {
+        return this._collection.remove({}, {w: 1});
+    }
+
+    /**
+     * @returns {string}
+     */
     getName() {
         return this._name;
     }
 
+    /**
+     * @returns {Branch}
+     */
     getCurrentBranch() {
         return this._currentBranch;
     }
@@ -76,6 +132,10 @@ export class Repository
         return this._latestCommit
     }
 
+    /**
+     * @param commit
+     * @returns {Repository}
+     */
     setLatestCommit(commit) {
         this._latestCommit = commit;
         return this;
@@ -85,21 +145,30 @@ export class Repository
         return this._isActive;
     }
 
+    /**
+     * @param value
+     * @returns {Repository}
+     */
     setIsActive(value) {
         this._isActive = value;
         return this;
     }
 
-    switchCurrentBranchByName(name) {
+    /**
+     * @param name
+     * @returns {Repository}
+     */
+    async switchCurrentBranchByName(name) {
         const current = this.getCurrentBranch();
-        const branch = this.getBranchByName(name);
+        const branch = await this.getBranchByName(name);
         if (branch)
         {
+            branch.setIsCurrent(true);
+            await this._collection.update({name: branch.getName()}, {$set: {current: true}}, {w: 1});
             if (current)
             {
-                current.setIsCurrent(false);
+                await this._collection.update({name: current.getName()}, {$set: {current: false}}, {w: 1});
             }
-            branch.setIsCurrent(true);
             this._currentBranch = branch;
         }
         return this;
@@ -135,9 +204,11 @@ export class Repository
         this._timeSpent += this._tempTime;
         this._tempTime = 0;
         this._lastAccessed = new Date();
-        if (this.getCurrentBranch())
+        const current = this.getCurrentBranch();
+        if (current)
         {
-            this.getCurrentBranch().fileChanged();
+            current.fileChanged();
+            this._collection.update({name: current.getName()}, current.serialize(), {w: 1})
         }
     }
 
@@ -149,21 +220,20 @@ export class Repository
      * Fill data to repo from serialized structure
      * @param data {Object}
      */
-    fill(data) {
+    async fill(data) {
         this._initialised = new Date(data.initialised);
         this._latestCommit = data.latestCommit;
         this._lastAccessed = data.lastAccessed ? new Date(data.lastAccessed) : undefined;
         this._isActive = data.isActive;
         this._timeSpent = data.timeSpent;
         this._deleted = data.deleted ? new Date(data.deleted) : undefined;
-        this._branches = data.branches.map(part => {
-            const branch = Branch.unserialize(part);
-            if (branch.isCurrent())
-            {
-                this._currentBranch = branch;
-            }
-            return branch;
-        });
+        await this._collection.findOne({current: true})
+                  .then(async (part) => {
+                      if (part)
+                      {
+                          await this.switchCurrentBranchByName(part.name);
+                      }
+                  });
         return this;
     }
 
@@ -177,7 +247,7 @@ export class Repository
             name        : this._name,
             dir         : this._dir,
             deleted     : this._deleted ? this._deleted.toJSON() : undefined,
-            branches    : this._branches.map(branch => branch.serialize())
+            // branches    : this._branches.map(branch => branch.serialize())
         }
     }
 
