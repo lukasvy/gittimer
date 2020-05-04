@@ -14,7 +14,11 @@ export class Repository
         this._lastAccessed = undefined;
         this._isActive = false;
         this._currentBranch = undefined;
-        this._collection = createCollection(dir);
+    }
+
+    async init() {
+        this._collection = await createCollection(this._dir);
+        return this;
     }
 
     delete(value) {
@@ -36,14 +40,10 @@ export class Repository
      */
     addBranches(array) {
         return this._collection.insert(
-            array.map(part => ({
-                name   : part.name,
-                current: part.current
-            })), {w: 1})
-                   .then(async parts => {
-                       return this._collection.findOne({current: true})
-                                  .then(current => this.switchCurrentBranchByName(current.name));
-                   });
+            array.map(part => Branch.unserialize(part).serialize()), {w: 1})
+                   .then(() => this._collection.findOne({current: {$eq: true}})
+                                         .then(current => this.switchCurrentBranchByName(current.name))
+                   );
     }
 
     /**
@@ -67,7 +67,7 @@ export class Repository
         await this._collection.update(
             {name: data.name},
             {
-                ...data,
+                ...Branch.unserialize(data).serialize(),
                 current: true
             },
             {
@@ -159,6 +159,7 @@ export class Repository
      * @returns {Repository}
      */
     async switchCurrentBranchByName(name) {
+        console.log(name);
         const current = this.getCurrentBranch();
         const branch = await this.getBranchByName(name);
         if (branch)
@@ -208,7 +209,9 @@ export class Repository
         if (current)
         {
             current.fileChanged();
-            this._collection.update({name: current.getName()}, current.serialize(), {w: 1})
+            this._collection.update({name: current.getName()}, current.serialize(), {w: 1}, (err, r) => {
+                console.log(err, r);
+            })
         }
     }
 
@@ -239,14 +242,14 @@ export class Repository
 
     serialize() {
         return {
-            initialised : this._initialised.toJSON(),
+            initialised : this._initialised.toISOString(),
             latestCommit: this._latestCommit,
-            lastAccessed: this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
+            lastAccessed: this._lastAccessed ? this._lastAccessed.toISOString() : undefined,
             isActive    : this._isActive,
             timeSpent   : this._timeSpent,
             name        : this._name,
             dir         : this._dir,
-            deleted     : this._deleted ? this._deleted.toJSON() : undefined,
+            deleted     : this._deleted ? this._deleted.toISOString() : undefined,
             // branches    : this._branches.map(branch => branch.serialize())
         }
     }
@@ -254,8 +257,9 @@ export class Repository
     /**
      * @param data {Object}
      */
-    static unserialize(data) {
-        return new Repository(data.name, data.dir).fill(data);
+    static async unserialize(data) {
+        const repo = await new Repository(data.name, data.dir).init();
+        return await repo.fill(data);
     }
 }
 

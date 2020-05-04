@@ -9,7 +9,7 @@ export class Branch
         this._current = current;
         this._timeSpent = 0;
         this._lastAccessed = undefined;
-        this._lastAccessedSeconds = undefined;
+        this._lastAccessedSeconds = 0;
         this._tempTime = 0;
     }
 
@@ -68,7 +68,7 @@ export class Branch
         return {
             timeSpent          : this._timeSpent || 0,
             lastAccessedSeconds: this._lastAccessedSeconds || 0,
-            lastAccessed       : this._lastAccessed ? this._lastAccessed.toJSON() : undefined,
+            lastAccessed       : this._lastAccessed ? this._lastAccessed.toISOString() : undefined,
             current            : this._current || false,
             name               : this._name
         }
@@ -80,7 +80,8 @@ export class Branch
      */
     fill(data) {
         this._timeSpent = data.timeSpent || 0;
-        this._lastAccessed = new Date(data.lastAccessed);
+        this._lastAccessed = data.lastAccessed ? new Date(data.lastAccessed) : undefined;
+        this._lastAccessedSeconds = data.lastAccessedSeconds || 0;
         return this;
     }
 

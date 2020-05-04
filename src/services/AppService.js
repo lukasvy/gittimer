@@ -29,7 +29,10 @@ function restart() {
  * @param w window
  */
 function start(w) {
-    window = w;
+    if (w)
+    {
+        window = w;
+    }
     TickerService.start();
     FileWatchService.start();
 }

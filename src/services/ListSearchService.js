@@ -1,9 +1,12 @@
 import {Subscription} from "~/src/services/Observable";
 import {KeyboardListener} from "~/src/services/KeyboardListener";
+import {RepositoriesList} from "@/services/RepositoriesList";
 
 let search = [];
 const change = Subscription();
 const clearFinished = Subscription();
+
+RepositoriesList.onDataRefresh(clear);
 
 KeyboardListener.listen(event => {
     if (event.key === 'Backspace')
@@ -49,15 +52,21 @@ function getText() {
  * @return boolean
  */
 function itemPassesFilter(name) {
-    if (!search.length)
-    {
+    const regex = getSearchReg();
+    if (!regex) {
         return true;
     }
     return !!name.match(getSearchReg());
 }
 
+/**
+ * @returns {RegExp|undefined}
+ */
 function getSearchReg () {
-    return RegExp(search.join('').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    if (!search.length) {
+        return undefined;
+    }
+    return search.join('');
 }
 
 function clear() {

@@ -37,20 +37,10 @@
                 this.iconsActive = (!!RepositoriesList.get().length)
             },
             settings(e) {
-                if (this.loading)
-                {
-                    console.log('loading');
-                    return;
-                }
                 this.loading = true;
                 SettingsMenuService.openMenu(e).catch(e=>console.log(e)).finally(() => this.loading = false);
             },
             list(e) {
-                if (this.loading)
-                {
-                    console.log('loading');
-                    return;
-                }
                 this.loading = true;
                 SettingsMenuService.openList(e).catch(e=>console.log(e)).finally(() => this.loading = false);
             }

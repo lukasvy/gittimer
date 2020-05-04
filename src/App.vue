@@ -34,13 +34,13 @@
                 RepositoriesList.storeData();
                 AppService.stop()
             });
-            ipcRenderer.on('unlock-screen', async() => {
+            ipcRenderer.on('unlock-screen', async(window) => {
                 await RepositoriesList.createFromData();
-                AppService.start()
+                AppService.start(window)
             });
-            ipcRenderer.on('resuming', async() => {
+            ipcRenderer.on('resuming', async(window) => {
                 await RepositoriesList.createFromData();
-                AppService.start()
+                AppService.start(window)
             });
             ipcRenderer.on('quitting', (event, arg) => {
                 this.shown = false;

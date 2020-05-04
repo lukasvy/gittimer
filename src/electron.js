@@ -145,11 +145,11 @@ function createWindow() {
     });
 
     powerMonitor.on('resuming', () => {
-        myWindow.webContents.send('resuming');
+        myWindow.webContents.send('resuming', myWindow);
     });
 
     powerMonitor.on('unlock-screen', () => {
-        myWindow.webContents.send('unlock-screen');
+        myWindow.webContents.send('unlock-screen', myWindow);
     });
 
     powerMonitor.on('suspend', () => {

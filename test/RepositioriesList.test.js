@@ -103,7 +103,7 @@ describe('Repositories list should work as expected', () => {
         delete serialized.branches;
         RepositoriesList.storeData();
         RepositoriesList.reset();
-        RepositoriesList.createFromData();
+        await RepositoriesList.createFromData();
         const serialized2 = RepositoriesList.getActiveRepo().serialize();
         const serializedBranch2 = RepositoriesList.getActiveRepo().getBranches()[0].serialize();
         delete serialized2.branches;

@@ -33,15 +33,18 @@ TickerService.subscribeToTick(() => {
 });
 
 function switchActiveRepo(repo) {
-    get().forEach(r=>{
-        if (r === repo) {
+    get().forEach(r => {
+        if (r === repo)
+        {
             r.setIsActive(true)
-        } else {
+        } else
+        {
             r.setIsActive(false)
         }
     });
     dataRefresh.trigger();
 }
+
 /**
  * @param repo
  * @param toBranchName
@@ -52,9 +55,9 @@ async function switchActiveBranch(repo, toBranchName) {
         if (!await repo.getBranchByName(toBranchName))
         {
             await repo.addBranch({
-                               name   : toBranchName,
-                               current: false
-                           });
+                                     name   : toBranchName,
+                                     current: false
+                                 });
         }
         switchActiveRepo(repo);
         await repo.switchCurrentBranchByName(toBranchName);
@@ -79,6 +82,10 @@ async function deleteRepo(repo) {
     {
         await repo.cleanup();
         repositories.splice(index, 1);
+        if (repositories.length)
+        {
+            repositories[0].setIsActive(true);
+        }
         dataRefresh.trigger();
     }
 }
@@ -164,21 +171,24 @@ async function createFromDir(dir) {
                            Promise.all([getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
                                   .then(async data => {
+                                      const repoData = await new Repository(data[1], dir)
+                                          .init();
+                                      repoData.setLatestCommit(data[2].latest)
+                                              .setIsActive(true);
+                                      await repoData.addBranches(Object.values(data[0].branches));
+                                      get().push(repoData);
+
                                       if (getActiveRepo())
                                       {
                                           getActiveRepo().setIsActive(false);
                                       }
                                       const existingRepo = get().find(part => part.getDir() === dir);
-                                      if (existingRepo) {
+                                      if (existingRepo)
+                                      {
                                           existingRepo.setIsActive(true);
                                           return;
                                       }
 
-                                      const repoData = new Repository(data[1], dir)
-                                          .setLatestCommit(data[2].latest)
-                                          .setIsActive(true);
-                                      await repoData.addBranches(Object.values(data[0].branches));
-                                      get().push(repoData);
                                       return repoData;
 
                                   })
@@ -189,19 +199,23 @@ async function createFromDir(dir) {
  * @returns {Promise<unknown[]|boolean>}
  */
 async function createFromData() {
-    if (get().length) {
+    if (get().length)
+    {
         return Promise.resolve(true);
     }
     const data = store.get('gittimer-data');
     if (data)
     {
-        await Promise.all(data.map(async (part) => {
-            const repo = await Repository.unserialize(part);
-            get().push(repo);
-        }));
+        (await Promise.all(data.map(part => Repository.unserialize(part)))
+                      .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message, e)))
+            .forEach(repo => repo ? get().push(repo): undefined);
     }
-    dataRefresh.trigger();
-    return Promise.resolve(true);
+    if (get().length)
+    {
+        dataRefresh.trigger();
+        return Promise.resolve(true);
+    }
+    return Promise.resolve(false);
 }
 
 function storeData() {
@@ -230,12 +244,14 @@ function getActiveBranch() {
 async function removeRepo(repo) {
     let index = 0;
     const repoIndex = get().lastIndexOf(repo);
-    if (repo && repoIndex > -1) {
+    if (repo && repoIndex > -1)
+    {
         repo.setIsActive(false);
         index = repoIndex;
     }
     repositories.splice(index, 1);
-    if (repositories.length) {
+    if (repositories.length)
+    {
         repositories[0].setIsActive(true);
     }
     await repo.cleanup();
@@ -245,7 +261,11 @@ async function removeRepo(repo) {
 
 function reset() {
     tick = 1;
-    while(repositories.length) {repositories.pop()};
+    while (repositories.length)
+    {
+        repositories.pop()
+    }
+    ;
 }
 
 export const RepositoriesList = {
@@ -254,7 +274,7 @@ export const RepositoriesList = {
     switchActiveBranch,
     storeData,
     onDataRefresh : dataRefresh.subscribe,
-    onSwitchBranch : switchBranch.subscribe,
+    onSwitchBranch: switchBranch.subscribe,
     removeRepo,
     getActiveRepo,
     switchActiveRepo,

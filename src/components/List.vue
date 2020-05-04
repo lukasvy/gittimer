@@ -2,52 +2,78 @@
     <div class="git-content">
         <div class="ui middle aligned divided list medium item-container">
             <div class="scrollable-content">
-                <RecyclerView
-                        ref="RecyclerView"
-                        :prerender="30"
-                        :fetch="(limit, skip) => fetch(undefined, limit, skip)"
-                        :item="Branch"
-                        @inited="initView"
-                ></RecyclerView>
+                <Branch v-for="branch in branchesList" :key="branch.getName()" :data="branch"></Branch>
+                <infinite-loading spinner="waveDots" :identifier="infiniteId" @infinite="infiniteHandler"
+                                  force-use-infinite-wrapper=".git-content">
+                    <div slot="no-more">~</div>
+                    <div slot="no-results">No results</div>
+                </infinite-loading>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    import {RepositoriesList} from "~/src/services/RepositoriesList";
-    import {ListSearchService} from "~/src/services/ListSearchService";
+    import {RepositoriesList} from "@/services/RepositoriesList";
+    import {ListSearchService} from "@/services/ListSearchService";
     import Branch from "@/components/Branch";
     import {fetch} from "@/services/FetchRepositoryListService";
-    import InfiniteLoading from 'vue-infinite-loading';
+
 
     export default {
         name      : "List",
         components: {
-            Branch,
+            Branch
         },
         data      : function () {
             return {
                 branchesList: [],
+                branchesKeys: {},
                 search      : [],
-                repos       : [],
                 fetch       : fetch,
-                Branch      : Branch,
-                style       : '',
+                infiniteId  : new Date(),
+                page        : 0,
+                limit       : 30
             }
         },
         methods   : {
-            initView() {
-                if (this.$refs.RecyclerView)
+            async infiniteHandler($state) {
+                try
                 {
+                    this.search = ListSearchService.getText();
+                    const data = await fetch(
+                        this.activeRepo, this.limit, this.page * this.limit, this.search
+                    );
+                    if (data.text !== this.search) {
+                        return $state.loaded();
+                    }
+                    if (data.list.length)
+                    {
+                        data.list.forEach((part) => {
+                            if (!this.branchesKeys[part.getName()] &&
+                            part.getName() !== RepositoriesList.getActiveBranch().getName()) {
+                                this.branchesList.push(part);
+                                this.branchesKeys[part.getName()] = true;
+                            }
+                        });
+                        if (this.branchesList.length >= data.count)
+                        {
+                            return $state.complete();
+                        }
+                        this.page++;
+                        return $state.loaded();
+                    }
+                } catch (e)
+                {
+                    $state.error(e);
                 }
-                console.log(this.$refs.RecyclerView)
+                $state.complete();
             },
             setBranchesList() {
-                if (this.$refs.RecyclerView)
-                {
-                    // this.$refs.RecyclerView.init()
-                }
+                this.page = 0;
+                this.branchesList = [];
+                this.branchesKeys = {};
+                this.infiniteId = new Date();
             },
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
@@ -55,7 +81,6 @@
                 {
                     return this.$router.push('nothing');
                 }
-                this.repos = RepositoriesList.get();
                 this.setBranchesList();
             }
         },
@@ -78,14 +103,6 @@
 </script>
 
 <style>
-    .recyclerview-container {
-        height: calc(76vh - 17px);;
-    }
-
-    .recyclerview {
-        background-color: #f4f4f4 !important;
-    }
-
     .item-container {
         display: flex;
         flex-direction: column;

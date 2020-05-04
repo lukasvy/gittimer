@@ -1,11 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+// https://github.com/sergeyksv/tingodb
 const Engine = require('tingodb')();
 const appPath = require('electron').remote.app.getAppPath();
 const dbDirName = 'db' + (process.env.NODE_ENV.match(/test/) ? '-test' : '');
 const dbPath = path.join(appPath, dbDirName);
 const CryptoJS = require("crypto-js");
-import Base64 from 'crypto-js/enc-base64';
+const _ = require('underscore');
 
 if (!fs.existsSync(dbPath))
 {
@@ -33,17 +34,29 @@ function wrapToPromise(obj, funcName) {
                     }
                     return resolve(data);
                 };
-
-                oldInsert.apply(obj, [...args, resolveFunc]);
+                try
+                {
+                    if (args.length && _.isFunction(args[args.length - 1]))
+                    {
+                        oldInsert.apply(obj, args);
+                    } else
+                    {
+                        oldInsert.apply(obj, [...args, resolveFunc]);
+                    }
+                } catch (e)
+                {
+                    console.log(e);
+                }
             })
         }
     }
     return obj;
 }
 
-export const promiseData = function(res, rej) {
-    return function(err, p) {
-        if (err) {
+export const promiseData = function (res, rej) {
+    return function (err, p) {
+        if (err)
+        {
             console.error(err);
             return rej(err)
         }
@@ -51,19 +64,37 @@ export const promiseData = function(res, rej) {
     }
 };
 
-export const createCollection = function (name) {
-    const encodedName = CryptoJS.MD5(name).toString();
-    const collectionPath = path.join(appPath, dbDirName, encodedName);
-    if (!fs.existsSync(collectionPath))
-    {
-        fs.closeSync(fs.openSync(collectionPath, 'w'));
-    }
-    const collection = db.collection(encodedName);
-    wrapToPromise(collection, 'insert');
-    wrapToPromise(collection, 'findOne');
-    wrapToPromise(collection, 'remove');
-    wrapToPromise(collection, 'update');
-    wrapToPromise(collection, 'findAndModify');
-    wrapToPromise(collection, 'findAndRemove');
-    return collection;
+/**
+ * @param name
+ * @returns {Promise<unknown>}
+ */
+export const createCollection = async function (name) {
+    return new Promise((res, rej) => {
+        const encodedName = CryptoJS.MD5(name).toString();
+        const collectionPath = path.join(appPath, dbDirName, encodedName);
+        if (!fs.existsSync(collectionPath))
+        {
+            fs.closeSync(fs.openSync(collectionPath, 'w'));
+        }
+        db.collection(encodedName, (err, collection) => {
+            if (err)
+            {
+                return rej(err);
+            }
+            wrapToPromise(collection, 'insert');
+            wrapToPromise(collection, 'findOne');
+            wrapToPromise(collection, 'remove');
+            wrapToPromise(collection, 'update');
+            wrapToPromise(collection, 'findAndModify');
+            wrapToPromise(collection, 'findAndRemove');
+            collection.createIndex('name', {w: 1}, (err, d) => {
+                if (err)
+                {
+                    return rej(err);
+                }
+                collection.find({name: 'master'}).toArray((err, value) => console.log(value))
+                return res(collection)
+            });
+        });
+    })
 };
