@@ -6,8 +6,9 @@ import {Settings} from "~/src/services/SettingsService";
 import {Repository} from "~/src/models/Repository";
 
 describe('Test branch model', () => {
-    it('Should be created without issues', () => {
+    it('Should be created without issues', async () => {
         const repo = new Repository('testrepo', 'testdir');
+        await repo.init();
         expect(repo.getName(), 'Correct name').to.equal('testrepo');
         expect(repo.isActive(), 'Correct is active').to.equal(false);
         repo.setIsActive(true);
@@ -20,8 +21,9 @@ describe('Test branch model', () => {
         });
         expect(repo.getTimeSpent(), 'Increased time spent').to.equal(4);
     });
-    it('Should test that time spent after inactive time is reduced', () => {
+    it('Should test that time spent after inactive time is reduced', async() => {
         const repo = new Repository('testrepo', 'testdir');
+        await repo.init();
         const halfInactivity = Settings.inactivityTimeInSeconds / 2;
         new Array(halfInactivity).fill(0).forEach(function () {
             repo.tick()
@@ -32,8 +34,9 @@ describe('Test branch model', () => {
         });
         expect(repo.getTimeSpent(), 'Increased time spent after inactive time').to.equal(0);
     });
-    it('Should commit time on file change notification', () => {
+    it('Should commit time on file change notification', async() => {
         const repo = new Repository('testrepo', 'testdir');
+        await repo.init();
         const halfInactivity = Settings.inactivityTimeInSeconds / 2;
         new Array(halfInactivity).fill(0).forEach(function () {
             repo.tick()
@@ -45,8 +48,9 @@ describe('Test branch model', () => {
         });
         expect(repo.getTimeSpent(), 'Increased time spent after inactive time').to.equal(halfInactivity);
     });
-    it('Should have proper last access after file changed', () => {
+    it('Should have proper last access after file changed', async() => {
         const repo = new Repository('testrepo', 'testdir');
+        await repo.init();
         const halfInactivity = Settings.inactivityTimeInSeconds / 2;
         new Array(halfInactivity).fill(0).forEach(function () {
             repo.tick()
@@ -56,33 +60,35 @@ describe('Test branch model', () => {
         expect(moment(repo.getLastAccess()).format('YYYY-MM-DD HH:mm:ss') === date,
                'Last access should equal to time when file was changed').to.equal(true);
     });
-    it('Should add normal branch', () => {
+    it('Should add normal branch', async () => {
         const repo = new Repository('testrepo', 'testdir');
-        repo.addBranch({
+        await repo.init();
+        await repo.addBranch({
                            name   : 'bug/test',
                            current: true
                        });
         expect(repo.getCurrentBranch().getName() === 'bug/test',
                'Get correct active branch').to.equal(true);
-        repo.addBranch({
+        await repo.addBranch({
                            name   : 'bug/test2',
                            current: true
                        });
         expect(repo.getCurrentBranch().getName() === 'bug/test2',
                'Get correct active second branch').to.equal(true);
-        repo.switchCurrentBranchByName('bug/test');
+        await repo.switchCurrentBranchByName('bug/test');
         // wrong branch name
-        repo.switchCurrentBranchByName('bug/test1');
+        await repo.switchCurrentBranchByName('bug/test1');
         expect(repo.getCurrentBranch().getName() === 'bug/test',
                'Get correct switched active branch').to.equal(true);
     });
-    it('Should time branches based on active branch', () => {
+    it('Should time branches based on active branch', async () => {
         const repo = new Repository('testrepo', 'testdir');
-        repo.addBranch({
+        await repo.init();
+        await repo.addBranch({
                            name   : 'bug/test',
                            current: true
                        });
-        repo.addBranch({
+        await repo.addBranch({
                            name   : 'bug/test2',
                            current: true
                        });
@@ -90,12 +96,12 @@ describe('Test branch model', () => {
         new Array(halfInactivity).fill(0).forEach(function () {
             repo.tick()
         });
-        expect(repo.getBranches()[0].getTimeSpent(),
+        expect((await repo.getBranches())[0].getTimeSpent(),
                'Not current branch should not have time counted').to.equal(0);
-        expect(repo.getBranches()[1].getTimeSpent(),
+        expect((await repo.getBranches())[1].getTimeSpent(),
                'Current branch should have time counted').to.equal(halfInactivity);
-        repo.switchCurrentBranchByName('bug/test');
-        expect(repo.getBranches()[1].getTimeSpent(),
+        await repo.switchCurrentBranchByName('bug/test');
+        expect((await repo.getBranches())[1].getTimeSpent(),
                'Current should have 0 counter when no changes were done and it was switched to different branch').to.equal(0);
     });
 });

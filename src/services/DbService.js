@@ -38,7 +38,13 @@ function wrapToPromise(obj, funcName) {
                 {
                     if (args.length && _.isFunction(args[args.length - 1]))
                     {
-                        oldInsert.apply(obj, args);
+                        const argsArr = [...args];
+                        const func = argsArr.pop();
+                        const newArgs = [...argsArr, (err, d) => {
+                            func(err, d);
+                            resolveFunc(err, d)
+                        }];
+                        oldInsert.apply(obj, newArgs);
                     } else
                     {
                         oldInsert.apply(obj, [...args, resolveFunc]);
@@ -53,6 +59,11 @@ function wrapToPromise(obj, funcName) {
     return obj;
 }
 
+/**
+ * @param res
+ * @param rej
+ * @returns {function(...[*]=)}
+ */
 export const promiseData = function (res, rej) {
     return function (err, p) {
         if (err)
@@ -92,7 +103,6 @@ export const createCollection = async function (name) {
                 {
                     return rej(err);
                 }
-                collection.find({name: 'master'}).toArray((err, value) => console.log(value))
                 return res(collection)
             });
         });

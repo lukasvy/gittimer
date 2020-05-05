@@ -78,11 +78,11 @@ export class Repository
 
     /**
      * @param name
-     * @returns {Promise<Branch>}
+     * @returns {Promise<Branch|undefined>}
      */
     async getBranchByName(name) {
         return this._collection.findOne({name: name})
-                   .then(data => Branch.unserialize(data));
+                   .then(data => data ? Branch.unserialize(data) : undefined);
     }
 
     /**
@@ -104,7 +104,17 @@ export class Repository
             this._collection
                 .find({})
                 .toArray(promiseData(r, j))
-        }).then(parts => parts.map(part => Branch.unserialize(part)));
+        }).then(parts => parts.map(part => {
+            let branch = undefined;
+            if (part)
+            {
+                branch = Branch.unserialize(part);
+                if (part.name === this.getCurrentBranch().getName()) {
+                    branch = this.getCurrentBranch();
+                }
+            }
+            return branch;
+        }));
     }
 
     /**
@@ -159,7 +169,6 @@ export class Repository
      * @returns {Repository}
      */
     async switchCurrentBranchByName(name) {
-        console.log(name);
         const current = this.getCurrentBranch();
         const branch = await this.getBranchByName(name);
         if (branch)
@@ -258,7 +267,7 @@ export class Repository
      * @param data {Object}
      */
     static async unserialize(data) {
-        const repo = await new Repository(data.name, data.dir).init();
+        const repo = await (new Repository(data.name, data.dir).init());
         return await repo.fill(data);
     }
 }

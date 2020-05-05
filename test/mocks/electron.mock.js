@@ -2,8 +2,8 @@ module.exports = {
     remote: {
         dialog          : () => null,
         getCurrentWindow: () => null,
-        app             : () => ({
+        app             : {
             getAppPath: () => __dirname
-        })
+        }
     }
 };

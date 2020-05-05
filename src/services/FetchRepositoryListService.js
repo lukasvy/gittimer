@@ -58,7 +58,6 @@ function query(repo, limit, skip, search) {
                            count: count,
                            text : search
                        };
-                       console.log(data);
                        resolve(data);
                    } catch (e)
                    {
@@ -76,6 +75,5 @@ function query(repo, limit, skip, search) {
  * @returns {Promise<{count: <integer>, list: <Array<Branch>>}>}
  */
 export const fetch = function (repo, limit, skip, search) {
-    limit = Math.max(30, limit);
     return query(repo, limit, skip, search);
 };

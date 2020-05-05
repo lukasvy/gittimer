@@ -158,6 +158,10 @@ async function getRepoName(dir) {
  * @return Promise
  */
 async function createFromDir(dir) {
+    if (get().find(part => part.getDir() === dir))
+    {
+        return Promise.resolve(true);
+    }
     if (!fs.existsSync(dir))
     {
         throw new Error(`${dir} does not exists`);
@@ -208,7 +212,7 @@ async function createFromData() {
     {
         (await Promise.all(data.map(part => Repository.unserialize(part)))
                       .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message, e)))
-            .forEach(repo => repo ? get().push(repo): undefined);
+            .forEach(repo => repo ? get().push(repo) : undefined);
     }
     if (get().length)
     {
@@ -238,23 +242,31 @@ function getActiveBranch() {
 }
 
 /**
- * @param repo
+ * @param repo {Repository|undefined}
  * @returns {Promise<void>}
  */
 async function removeRepo(repo) {
-    let index = 0;
-    const repoIndex = get().lastIndexOf(repo);
-    if (repo && repoIndex > -1)
-    {
-        repo.setIsActive(false);
-        index = repoIndex;
+    let repos = [];
+    if (!repo) {
+        repos = get();
+    } else {
+        repos= [repo];
     }
-    repositories.splice(index, 1);
-    if (repositories.length)
-    {
-        repositories[0].setIsActive(true);
-    }
-    await repo.cleanup();
+    await Promise.all(repos.map(async (repo) => {
+        let index = 0;
+        const repoIndex = get().lastIndexOf(repo);
+        if (repo && repoIndex > -1)
+        {
+            repo.setIsActive(false);
+            index = repoIndex;
+        }
+        repositories.splice(index, 1);
+        if (repositories.length)
+        {
+            repositories[0].setIsActive(true);
+        }
+        await repo.cleanup();
+    }));
     storeData();
     dataRefresh.trigger();
 }
