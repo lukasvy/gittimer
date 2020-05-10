@@ -4,14 +4,14 @@
             <div class="scroll-repo-left">
             </div>
             <div class="git-header-name">
-                {{activeRepo ? activeRepo.getName() : 'Git Timer'}}
+                {{activeRepo && !appProgress ? activeRepo.getName() : 'Git Timer'}}
             </div>
             <div class="scroll-repo-right" @click.prevent="hideWindow">
                 <i class="close icon" style="padding-left: 12px;"></i>
             </div>
         </div>
         <collapse-transition :delay="400">
-            <div class="git-header-counter" v-show="activeRepo">
+            <div class="git-header-counter" v-show="activeRepo && !appProgress">
                 <div class="git-header-counter-icon">
                     <i class="ui icon play circle padded-icon"></i>
                 </div>
@@ -42,7 +42,8 @@
             return {
                 activeRepo  : undefined,
                 activeBranch: undefined,
-                activeSearch: ''
+                activeSearch: '',
+                appProgress : false
             }
         },
         components: {
@@ -66,11 +67,13 @@
             this.searchSubRemove = ListSearchService.onChange(
                 () => this.activeSearch = ListSearchService.getText());
             this.activateRepo();
+            this.removeOnAppProgress = AppService.inProgress((v) => this.appProgress = !!v)
         },
         destroyed() {
             this.removeOnSwitch ? this.removeOnSwitch() : undefined;
             this.removeOnDataRefresh ? this.removeOnDataRefresh() : undefined;
             this.searchSubRemove ? this.searchSubRemove() : undefined;
+            this.removeOnAppProgress ? this.removeOnAppProgress() : undefined;
         }
     }
 </script>

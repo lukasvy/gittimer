@@ -77,7 +77,7 @@ export const promiseData = function (res, rej) {
 
 /**
  * @param name
- * @returns {Promise<unknown>}
+ * @returns {Promise<tcoll>}
  */
 export const createCollection = async function (name) {
     return new Promise((res, rej) => {
@@ -96,15 +96,10 @@ export const createCollection = async function (name) {
             wrapToPromise(collection, 'findOne');
             wrapToPromise(collection, 'remove');
             wrapToPromise(collection, 'update');
+            wrapToPromise(collection, 'createIndex');
             wrapToPromise(collection, 'findAndModify');
             wrapToPromise(collection, 'findAndRemove');
-            collection.createIndex('name', {w: 1}, (err, d) => {
-                if (err)
-                {
-                    return rej(err);
-                }
-                return res(collection)
-            });
+            res(collection);
         });
     })
 };

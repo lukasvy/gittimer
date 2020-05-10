@@ -1,12 +1,15 @@
 <template>
     <div class="git-content">
         <div class="ui middle aligned divided list medium item-container">
-            <div class="scrollable-content">
+            <div v-if="isLoading" style="margin: 35% 0;">
+                <div class="ui active centered inline loader"></div>
+            </div>
+            <div class="scrollable-content" v-if="!isLoading">
                 <Branch v-for="branch in branchesList" :key="branch.getName()" :data="branch"></Branch>
                 <infinite-loading spinner="waveDots" :identifier="infiniteId" @infinite="infiniteHandler"
                                   force-use-infinite-wrapper=".git-content">
                     <div slot="no-more">~</div>
-                    <div slot="no-results">No results</div>
+                    <div slot="no-results"></div>
                 </infinite-loading>
             </div>
         </div>
@@ -18,7 +21,9 @@
     import {ListSearchService} from "@/services/ListSearchService";
     import Branch from "@/components/Branch";
     import {fetch} from "@/services/FetchRepositoryListService";
+    import {AppService} from "@/services/AppService";
 
+    const {ipcRenderer} = require('electron');
 
     export default {
         name      : "List",
@@ -33,7 +38,8 @@
                 fetch       : fetch,
                 infiniteId  : new Date(),
                 page        : 0,
-                limit       : 30
+                limit       : 30,
+                isLoading   : false
             }
         },
         methods   : {
@@ -44,14 +50,16 @@
                     const data = await fetch(
                         this.activeRepo, this.limit, this.page * this.limit, this.search
                     );
-                    if (data.text !== this.search) {
+                    if (data.text !== this.search)
+                    {
                         return $state.loaded();
                     }
                     if (data.list.length)
                     {
                         data.list.forEach((part) => {
                             if (!this.branchesKeys[part.getName()] &&
-                            part.getName() !== RepositoriesList.getActiveBranch().getName()) {
+                                part.getName() !== RepositoriesList.getActiveBranch().getName())
+                            {
                                 this.branchesList.push(part);
                                 this.branchesKeys[part.getName()] = true;
                             }
@@ -88,16 +96,19 @@
             '$route': 'activateRepo'
         },
         created() {
+            ipcRenderer.on('after-show', this.setBranchesList);
             ListSearchService.clear();
             this.removeOnSwitch = RepositoriesList.onSwitchBranch(this.activateRepo);
             this.removeOnDataRefresh = RepositoriesList.onDataRefresh(this.activateRepo);
-            this.searchSubRemove = ListSearchService.onChange(() => this.setBranchesList());
+            this.searchSubRemove = ListSearchService.onReloadChange(() => this.setBranchesList());
+            this.isLoadingRemove = AppService.inProgress((v) => this.isLoading=!!v);
             this.activateRepo();
         },
         destroyed() {
             this.removeOnDataRefresh ? this.removeOnDataRefresh() : undefined;
             this.removeOnSwitch ? this.removeOnSwitch() : undefined;
             this.searchSubRemove ? this.searchSubRemove() : undefined;
+            this.isLoadingRemove ? this.isLoadingRemove() : undefined;
         }
     }
 </script>

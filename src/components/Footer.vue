@@ -1,10 +1,10 @@
 <template>
     <div class="git-footer">
         <div class="footer-left" @click.prevent="e => list(e)" v-if="listActive && iconsActive">
-            <i class="list alternate icon" :style="{'opacity:0.6':loading, 'opacity:1':!loading}"></i>
+            <i class="list alternate icon" :style="{opacity: loading ? '0.4' : '1'}"></i>
         </div>
         <div class="footer-rigth" @click.prevent="e => settings(e)" v-if="iconsActive">
-            <i class="cog icon" :style="{'opacity:0.6':loading, 'opacity:1':!loading}"></i>
+            <i class="cog icon" :style="{opacity: loading ? '0.4' : '1'}"></i>
         </div>
     </div>
 </template>
@@ -14,6 +14,7 @@
 
     const {ipcRenderer, remote} = require('electron');
     import {RepositoriesList} from "../services/RepositoriesList";
+    import {AppService} from "@/services/AppService";
 
     export default {
         name     : "Footer",
@@ -27,9 +28,11 @@
         created  : function () {
             this.activateRepo();
             this.removeOnDataRefresh = RepositoriesList.onDataRefresh(this.activateRepo);
+            this.appProgressRemove = AppService.inProgress((v) => this.loading = !!v);
         },
         destroyed: function () {
-            this.removeOnDataRefresh();
+            this.removeOnDataRefresh ? this.removeOnDataRefresh() : undefined;
+            this.appProgressRemove ? this.appProgressRemove() : undefined;
         },
         methods  : {
             activateRepo() {
@@ -37,12 +40,16 @@
                 this.iconsActive = (!!RepositoriesList.get().length)
             },
             settings(e) {
-                this.loading = true;
-                SettingsMenuService.openMenu(e).catch(e=>console.log(e)).finally(() => this.loading = false);
+                if (!AppService.isInProgress())
+                {
+                    SettingsMenuService.openMenu(e).catch(e => console.log(e));
+                }
             },
             list(e) {
-                this.loading = true;
-                SettingsMenuService.openList(e).catch(e=>console.log(e)).finally(() => this.loading = false);
+                if (!AppService.isInProgress())
+                {
+                    SettingsMenuService.openList(e).catch(e => console.log(e));
+                }
             }
         }
     }

@@ -18,6 +18,7 @@ export class Repository
 
     async init() {
         this._collection = await createCollection(this._dir);
+        await this._collection.createIndex({name:1}, {w: 1});
         return this;
     }
 
@@ -42,7 +43,7 @@ export class Repository
         return this._collection.insert(
             array.map(part => Branch.unserialize(part).serialize()), {w: 1})
                    .then(() => this._collection.findOne({current: {$eq: true}})
-                                         .then(current => this.switchCurrentBranchByName(current.name))
+                                   .then(current => this.switchCurrentBranchByName(current.name))
                    );
     }
 
@@ -109,7 +110,8 @@ export class Repository
             if (part)
             {
                 branch = Branch.unserialize(part);
-                if (part.name === this.getCurrentBranch().getName()) {
+                if (part.name === this.getCurrentBranch().getName())
+                {
                     branch = this.getCurrentBranch();
                 }
             }
