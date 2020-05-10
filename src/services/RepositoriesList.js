@@ -32,21 +32,35 @@ TickerService.subscribeToTick(() => {
     }
 });
 
+function switchActiveRepo(repo) {
+    get().forEach(r => {
+        if (r === repo)
+        {
+            r.setIsActive(true)
+        } else
+        {
+            r.setIsActive(false)
+        }
+    });
+    dataRefresh.trigger();
+}
+
 /**
  * @param repo
  * @param toBranchName
  */
-function switchActiveBranch(repo, toBranchName) {
-    if (repo.getCurrentBranch().getName() !== toBranchName)
+async function switchActiveBranch(repo, toBranchName) {
+    if (repo.getCurrentBranch() && repo.getCurrentBranch().getName() !== toBranchName)
     {
-        if (!repo.getBranchByName(toBranchName))
+        if (!await repo.getBranchByName(toBranchName))
         {
-            repo.addBranch({
-                               name   : toBranchName,
-                               current: false
-                           });
+            await repo.addBranch({
+                                     name   : toBranchName,
+                                     current: false
+                                 });
         }
-        repo.switchCurrentBranchByName(toBranchName);
+        switchActiveRepo(repo);
+        await repo.switchCurrentBranchByName(toBranchName);
         switchBranch.trigger(toBranchName);
         dataRefresh.trigger();
     }
@@ -62,11 +76,16 @@ async function getLogs(dir) {
         .catch(e => repoError(get().find(repo => repo.getDir() === dir), e));
 }
 
-function deleteRepo(repo) {
+async function deleteRepo(repo) {
     const index = repositories.findIndex(repo);
     if (index > -1)
     {
+        await repo.cleanup();
         repositories.splice(index, 1);
+        if (repositories.length)
+        {
+            repositories[0].setIsActive(true);
+        }
         dataRefresh.trigger();
     }
 }
@@ -77,7 +96,7 @@ function repoError(repo, error) {
         deleteRepo(repo);
         storeData();
     }
-    DialogService.showErrorBox('Uh Oh!', error.message)
+    DialogService.showErrorBox('Uh Oh!', error.message, error)
 }
 
 function checkReposForChanges() {
@@ -139,6 +158,10 @@ async function getRepoName(dir) {
  * @return Promise
  */
 async function createFromDir(dir) {
+    if (get().find(part => part.getDir() === dir))
+    {
+        return Promise.resolve(true);
+    }
     if (!fs.existsSync(dir))
     {
         throw new Error(`${dir} does not exists`);
@@ -151,35 +174,52 @@ async function createFromDir(dir) {
                            checkIsGitDir(dir),
                            Promise.all([getAllBranches(dir), getRepoName(dir), getLogs(dir)]
                            )
-                                  .then(data => {
+                                  .then(async data => {
+                                      const repoData = await new Repository(data[1], dir)
+                                          .init();
+                                      repoData.setLatestCommit(data[2].latest)
+                                              .setIsActive(true);
+                                      await repoData.addBranches(Object.values(data[0].branches));
+                                      get().push(repoData);
+
                                       if (getActiveRepo())
                                       {
                                           getActiveRepo().setIsActive(false);
                                       }
-                                      const repoData = new Repository(data[1], dir)
-                                          .setLatestCommit(data[2].latest)
-                                          .setIsActive(true);
-                                      data[0].all.forEach((branch) => {
-                                          repoData.addBranch(
-                                              {
-                                                  name   : branch,
-                                                  current: data[0].branches[branch].current
-                                              })
-                                      });
-                                      get().push(repoData);
+                                      const existingRepo = get().find(part => part.getDir() === dir);
+                                      if (existingRepo)
+                                      {
+                                          existingRepo.setIsActive(true);
+                                          return;
+                                      }
+
                                       return repoData;
 
                                   })
                        ]).finally(dataRefresh.trigger);
 }
 
-function createFromData() {
+/**
+ * @returns {Promise<unknown[]|boolean>}
+ */
+async function createFromData() {
+    if (get().length)
+    {
+        return Promise.resolve(true);
+    }
     const data = store.get('gittimer-data');
     if (data)
     {
-        data.map(part => Repository.unserialize(part)).forEach(part => get().push(part));
-        dataRefresh.trigger();
+        (await Promise.all(data.map(part => Repository.unserialize(part)))
+                      .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message, e)))
+            .forEach(repo => repo ? get().push(repo) : undefined);
     }
+    if (get().length)
+    {
+        dataRefresh.trigger();
+        return Promise.resolve(true);
+    }
+    return Promise.resolve(false);
 }
 
 function storeData() {
@@ -198,34 +238,58 @@ function getActiveRepo() {
 }
 
 function getActiveBranch() {
-    return (getActiveRepo() ? getActiveRepo().getBranches() : [])
-        .find(part => part.isCurrent())
+    return (getActiveRepo() ? getActiveRepo().getCurrentBranch() : undefined)
 }
 
-function removeRepo(repo) {
-    let index = 0;
-    const repoIndex = get().lastIndexOf(repo);
-    if (repo && repoIndex > -1) {
-        index = repoIndex;
+/**
+ * @param repo {Repository|undefined}
+ * @returns {Promise<void>}
+ */
+async function removeRepo(repo) {
+    let repos = [];
+    if (!repo) {
+        repos = get();
+    } else {
+        repos= [repo];
     }
-    repositories.splice(index, 1);
+    await Promise.all(repos.map(async (repo) => {
+        let index = 0;
+        const repoIndex = get().lastIndexOf(repo);
+        if (repo && repoIndex > -1)
+        {
+            repo.setIsActive(false);
+            index = repoIndex;
+        }
+        repositories.splice(index, 1);
+        if (repositories.length)
+        {
+            repositories[0].setIsActive(true);
+        }
+        await repo.cleanup();
+    }));
     storeData();
     dataRefresh.trigger();
 }
 
 function reset() {
     tick = 1;
-    while(repositories.length) {repositories.pop()};
+    while (repositories.length)
+    {
+        repositories.pop()
+    }
+    ;
 }
 
 export const RepositoriesList = {
     createFromDir,
     createFromData,
+    switchActiveBranch,
     storeData,
     onDataRefresh : dataRefresh.subscribe,
-    onSwitchBranch : switchBranch.subscribe,
+    onSwitchBranch: switchBranch.subscribe,
     removeRepo,
     getActiveRepo,
+    switchActiveRepo,
     getActiveBranch,
     reset,
     get

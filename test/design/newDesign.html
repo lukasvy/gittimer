@@ -78,6 +78,13 @@
         border-right: 1px solid #DBDBDB;
         height: 100%;
         max-width: 400px;
+        box-shadow:
+                0 2.8px 2.2px rgba(0, 0, 0, 0.034),
+                0 6.7px 5.3px rgba(0, 0, 0, 0.048),
+                0 12.5px 10px rgba(0, 0, 0, 0.06),
+                0 22.3px 17.9px rgba(0, 0, 0, 0.072),
+                0 41.8px 33.4px rgba(0, 0, 0, 0.086),
+                0 100px 80px rgba(0, 0, 0, 0.12)
     }
 
     .git-header {
@@ -97,13 +104,14 @@
     }
 
     .git-content {
-        padding: 10px;
         background-color: #f4f4f4;
         border-bottom: 1px solid #e8e8e8;
         min-height: 400px;
         overflow-y: overlay;
         flex: 1 1 auto;
         height: 100%;
+        padding-top: 5px;
+        padding-bottom: 5px;
     }
 
     .item-container {
@@ -135,9 +143,9 @@
     .item {
         display: flex;
         flex-direction: row;
-        padding-bottom: 5px;
         align-items: center;
-        padding-top: 5px;
+        padding: 5px 10px;
+        width: 100%;
         border-bottom: 1px solid #e2e0e0;
     }
 

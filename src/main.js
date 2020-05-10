@@ -7,10 +7,18 @@ import VueRouter from 'vue-router';
 import Transitions from 'vue2-transitions';
 import "@babel/polyfill";
 import 'semantic-ui-css/semantic.min.css';
+// https://github.com/PeachScript/vue-infinite-loading
+import InfiniteLoading from 'vue-infinite-loading';
 
 Vue.use(Transitions);
 Vue.use(VueElectron);
 Vue.use(VueRouter);
+Vue.use(VueRouter);
+Vue.use(InfiniteLoading, {
+    system: {
+        throttleLimit: 150,
+    }
+});
 
 const router = new VueRouter(
     {

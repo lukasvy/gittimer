@@ -2,11 +2,14 @@ import {TickerService} from "./TickerService";
 import {DialogService} from "./DialogService";
 import {ListSearchService} from "~/src/services/ListSearchService";
 import {FileWatchService} from "~/src/services/FileWatchService";
+import {Subscription} from "@/services/Observable";
+
 
 const subscriptions = {
     'onBeforeHide': []
 };
 
+const progress = Subscription();
 let window;
 
 ListSearchService.onClearFinished(hide);
@@ -29,7 +32,10 @@ function restart() {
  * @param w window
  */
 function start(w) {
-    window = w;
+    if (w)
+    {
+        window = w;
+    }
     TickerService.start();
     FileWatchService.start();
 }
@@ -39,7 +45,8 @@ function start(w) {
  * @return {Promise}
  */
 function hide() {
-    if (DialogService.isOpened()) {
+    if (DialogService.isOpened())
+    {
         return Promise.resolve();
     }
     if (!subscriptions['onBeforeHide'].length)
@@ -61,9 +68,18 @@ function onBeforeHide(call) {
     }
 }
 
+let appInProgress = false;
+
 export const AppService = {
     start,
     hide,
     onBeforeHide,
-    stop
+    stop,
+    inProgress     : progress.subscribe,
+    triggerProgress: progress.trigger,
+    isInProgress   : () => {
+        return appInProgress;
+    }
 };
+
+AppService.inProgress((v) => appInProgress = !!v);

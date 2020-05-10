@@ -1,6 +1,6 @@
 <template>
     <div class="git-content">
-        <div class="ui middle aligned divided medium">
+        <div class="ui middle aligned divided medium add-repo-content">
             <div class="ui icon header">
                 <i class="code branch icon"></i>
                 <p></p>
@@ -44,7 +44,7 @@
                                  }
                                  return dir;
                              })
-                             .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message))
+                             .catch((e) => DialogService.showErrorBox('Uh Oh!', e.message, e))
                              .finally(() => this.loading = false);
             }
         }
@@ -57,15 +57,21 @@
         align-content: center;
         text-align: center;
         justify-content: center;
+        margin: 10px !important
     }
 
     .git-content {
-        padding: 10px;
         background-color: #f4f4f4;
         border-bottom: 1px solid #e8e8e8;
         overflow-y: overlay;
         flex: 1 1 auto;
         height: 100%;
+        padding-top: 5px;
+        padding-bottom: 5px;
+    }
+
+    .add-repo-content {
+        padding : 10px;
     }
 
     .item-container {

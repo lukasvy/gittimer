@@ -1,15 +1,25 @@
 import {Subscription} from "~/src/services/Observable";
 import {KeyboardListener} from "~/src/services/KeyboardListener";
+import {RepositoriesList} from "@/services/RepositoriesList";
+import _ from 'lodash';
 
 let search = [];
 const change = Subscription();
+const reloadChange = Subscription();
 const clearFinished = Subscription();
 
-KeyboardListener.listen(event => {
+reloadChange.trigger = _.debounce(reloadChange.trigger, 500);
+
+
+RepositoriesList.onDataRefresh(clear);
+
+const listener = (event) => {
+    reloadChange.trigger.cancel();
     if (event.key === 'Backspace')
     {
         search.pop();
-        change.trigger();
+        reloadChange.trigger(search.join(''));
+        change.trigger(search.join(''));
     } else if (event.key === 'Escape')
     {
         if (getText())
@@ -24,17 +34,22 @@ KeyboardListener.listen(event => {
     } else if (event.key.match(/^[a-z0-9\/\.\\_-]$/i))
     {
         search.push(event.key);
-        change.trigger();
+        reloadChange.trigger(search.join(''));
+        change.trigger(search.join(''));
     }
-});
+};
+
+KeyboardListener.listen(listener);
 
 
 export const ListSearchService =
                  {
                      onChange       : change.subscribe,
+                     onReloadChange : reloadChange.subscribe,
                      clear,
                      onClearFinished: clearFinished.subscribe,
                      getText,
+                     getSearchReg,
                      itemPassesFilter
                  };
 
@@ -48,18 +63,28 @@ function getText() {
  * @return boolean
  */
 function itemPassesFilter(name) {
-    if (!search.length)
+    const regex = getSearchReg();
+    if (!regex)
     {
         return true;
     }
-    return !!name.match(
-        RegExp(search.join('').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
-    return !!search.join('').match(
-        RegExp(name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'));
+    return !!name.match(getSearchReg());
+}
+
+/**
+ * @returns {String}
+ */
+function getSearchReg() {
+    if (!search.length)
+    {
+        return undefined;
+    }
+    return search.join('');
 }
 
 function clear() {
     search = [];
-    change.trigger();
+    change.trigger('');
+    reloadChange.trigger('');
 }
 

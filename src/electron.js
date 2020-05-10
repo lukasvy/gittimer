@@ -138,17 +138,18 @@ function createWindow() {
     tray.setToolTip('Git Timer');
     tray.setContextMenu(contextMenu);
     tray.on('click', () => {
-        if (!myWindow.isVisible() && !showing && !hiding) {
+        if (!myWindow.isVisible() && !showing && !hiding)
+        {
             showWindow(myWindow, tray);
         }
     });
 
     powerMonitor.on('resuming', () => {
-        myWindow.webContents.send('resuming');
+        myWindow.webContents.send('resuming', myWindow);
     });
 
     powerMonitor.on('unlock-screen', () => {
-        myWindow.webContents.send('unlock-screen');
+        myWindow.webContents.send('unlock-screen', myWindow);
     });
 
     powerMonitor.on('suspend', () => {

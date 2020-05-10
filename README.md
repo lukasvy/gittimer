@@ -19,6 +19,7 @@ Lukas Vyslocky https://github.com/lukasvy
 
 ## To start 
 * have the latest [NodeJs](https://nodejs.org/) installed
+* have Git installed
 * run > `npm install` to install dependency packages
 * run > `npm run start` to start application
 

@@ -12,10 +12,11 @@ function showMessageBox(properties) {
     return dialog.showMessageBox(remote.getCurrentWindow(), properties).finally(() => _isOpened = false);
 }
 
-function showErrorBox(title, message) {
+function showErrorBox(title, message, error) {
     _isOpened = true;
     dialog.showErrorBox(title, message);
     _isOpened = false;
+    console.error(error);
     return;
 }
 

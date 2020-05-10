@@ -1,92 +1,114 @@
 <template>
     <div class="git-content">
         <div class="ui middle aligned divided list medium item-container">
-            <div class="scrollable-content">
-                <div class="item" v-for="branch in branchesList" :key="branch.getName()">
-                    <i class="ui icon code branch padded-icon"></i>
-                    <div class="content">
-                        <div class="header text-overflow">
-                            {{branch.getName()}}
-                        </div>
-                        <div class="time-spent" v-if="!branch.getFormattedTimeSpent()">
-                            <small>No time recorder yet</small>
-                        </div>
-                        <div class="time-spent" v-if="branch.getFormattedTimeSpent()">
-                            <small>
-                                {{branch.getFormattedTimeSpent() ? 'Time spent : '+
-                                branch.getFormattedTimeSpent() :
-                                ''}}
-                            </small> |
-                            <small>
-                                {{branch.getFormattedLastAccess() ? 'Last access : '+
-                                branch.getFormattedLastAccess() : ''}}
-                            </small>
-                        </div>
-                    </div>
-                </div>
+            <div v-if="isLoading" style="margin: 35% 0;">
+                <div class="ui active centered inline loader"></div>
+            </div>
+            <div class="scrollable-content" v-if="!isLoading">
+                <Branch v-for="branch in branchesList" :key="branch.getName()" :data="branch"></Branch>
+                <infinite-loading spinner="waveDots" :identifier="infiniteId" @infinite="infiniteHandler"
+                                  force-use-infinite-wrapper=".git-content">
+                    <div slot="no-more">~</div>
+                    <div slot="no-results"></div>
+                </infinite-loading>
             </div>
         </div>
     </div>
 </template>
 
 <script>
-    import {RepositoriesList} from "~/src/services/RepositoriesList";
-    import {ListSearchService} from "~/src/services/ListSearchService";
+    import {RepositoriesList} from "@/services/RepositoriesList";
+    import {ListSearchService} from "@/services/ListSearchService";
+    import Branch from "@/components/Branch";
+    import {fetch} from "@/services/FetchRepositoryListService";
+    import {AppService} from "@/services/AppService";
 
-    const {remote} = require('electron');
+    const {ipcRenderer} = require('electron');
 
     export default {
-        name   : "List",
-        data   : function () {
+        name      : "List",
+        components: {
+            Branch
+        },
+        data      : function () {
             return {
                 branchesList: [],
-                search      : []
+                branchesKeys: {},
+                search      : [],
+                fetch       : fetch,
+                infiniteId  : new Date(),
+                page        : 0,
+                limit       : 30,
+                isLoading   : false
             }
         },
-        methods: {
-            setBranchesList() {
-                this.branchesList =
-                    this.activeRepo
-                        .getBranches()
-                        .filter(part =>
-                                    !part.isCurrent() &&
-                                    ListSearchService.itemPassesFilter(part.getName()))
-                        .sort((a, b) => {
-                            if (!b.getLastAccess() && a.getLastAccess())
+        methods   : {
+            async infiniteHandler($state) {
+                try
+                {
+                    this.search = ListSearchService.getText();
+                    const data = await fetch(
+                        this.activeRepo, this.limit, this.page * this.limit, this.search
+                    );
+                    if (data.text !== this.search)
+                    {
+                        return $state.loaded();
+                    }
+                    if (data.list.length)
+                    {
+                        data.list.forEach((part) => {
+                            if (!this.branchesKeys[part.getName()] &&
+                                part.getName() !== RepositoriesList.getActiveBranch().getName())
                             {
-                                return -1;
+                                this.branchesList.push(part);
+                                this.branchesKeys[part.getName()] = true;
                             }
-                            return a.getLastAccess() > b.getLastAccess() ? -1 : 1;
                         });
+                        if (this.branchesList.length >= data.count)
+                        {
+                            return $state.complete();
+                        }
+                        this.page++;
+                        return $state.loaded();
+                    }
+                } catch (e)
+                {
+                    $state.error(e);
+                }
+                $state.complete();
+            },
+            setBranchesList() {
+                this.page = 0;
+                this.branchesList = [];
+                this.branchesKeys = {};
+                this.infiniteId = new Date();
             },
             activateRepo() {
                 this.activeRepo = RepositoriesList.getActiveRepo();
-                if (!this.activeRepo)
+                if (!RepositoriesList.get().length)
                 {
                     return this.$router.push('nothing');
                 }
                 this.setBranchesList();
-
             }
         },
-        watch  : {
+        watch     : {
             '$route': 'activateRepo'
         },
         created() {
+            ipcRenderer.on('after-show', this.setBranchesList);
             ListSearchService.clear();
             this.removeOnSwitch = RepositoriesList.onSwitchBranch(this.activateRepo);
             this.removeOnDataRefresh = RepositoriesList.onDataRefresh(this.activateRepo);
-            this.searchSubRemove = ListSearchService.onChange(() => this.setBranchesList());
+            this.searchSubRemove = ListSearchService.onReloadChange(() => this.setBranchesList());
+            this.isLoadingRemove = AppService.inProgress((v) => this.isLoading=!!v);
             this.activateRepo();
         },
         destroyed() {
-            if (this.window)
-            {
-                this.window.removeEventListener('keyup', this.listenToKeys);
-            }
-            this.removeOnDataRefresh ?  this.removeOnDataRefresh() : undefined;
-            this.removeOnSwitch ?  this.removeOnSwitch() : undefined;
+            this.removeOnDataRefresh ? this.removeOnDataRefresh() : undefined;
+            this.removeOnSwitch ? this.removeOnSwitch() : undefined;
             this.searchSubRemove ? this.searchSubRemove() : undefined;
+            this.isLoadingRemove ? this.isLoadingRemove() : undefined;
         }
     }
 </script>
@@ -96,22 +118,6 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-    }
-
-    .text-overflow {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .item {
-        display: flex;
-        flex-direction: row;
-        padding-bottom: 5px;
-        padding-top: 5px;
-        align-items: center;
-        border-bottom: 1px solid #e2e0e0;
-        max-width: 325px;
     }
 
     .content {
@@ -125,22 +131,13 @@
         padding-left: 6px;
     }
 
-    i.padded-icon {
-        /*padding-top: 5px;*/
-        margin-top: -7px !important;
-        font-size: 1.2em !important;
-    }
-
     .git-content {
-        padding: 10px;
         background-color: #f4f4f4;
         border-bottom: 1px solid #e8e8e8;
         overflow-y: overlay;
         flex: 1 1 auto;
         height: 100%;
-    }
-
-    .time-spent {
-        font-size: 0.8em;
+        padding-top: 5px;
+        padding-bottom: 5px;
     }
 </style>

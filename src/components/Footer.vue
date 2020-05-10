@@ -1,10 +1,10 @@
 <template>
     <div class="git-footer">
-        <div class="footer-left">
-            <!--            <i class="file alternate outline icon"></i>-->
+        <div class="footer-left" @click.prevent="e => list(e)" v-if="listActive && iconsActive">
+            <i class="list alternate icon" :style="{opacity: loading ? '0.4' : '1'}"></i>
         </div>
-        <div class="footer-rigth" @click.prevent="e => settings(e)">
-            <i class="cog icon"></i>
+        <div class="footer-rigth" @click.prevent="e => settings(e)" v-if="iconsActive">
+            <i class="cog icon" :style="{opacity: loading ? '0.4' : '1'}"></i>
         </div>
     </div>
 </template>
@@ -14,13 +14,43 @@
 
     const {ipcRenderer, remote} = require('electron');
     import {RepositoriesList} from "../services/RepositoriesList";
+    import {AppService} from "@/services/AppService";
 
     export default {
-        name   : "Footer",
-        created() {
+        name     : "Footer",
+        data     : function () {
+            return {
+                listActive : false,
+                iconsActive: false,
+                loading    : false
+            }
         },
-        methods: {
-            settings: SettingsMenuService.openMenu
+        created  : function () {
+            this.activateRepo();
+            this.removeOnDataRefresh = RepositoriesList.onDataRefresh(this.activateRepo);
+            this.appProgressRemove = AppService.inProgress((v) => this.loading = !!v);
+        },
+        destroyed: function () {
+            this.removeOnDataRefresh ? this.removeOnDataRefresh() : undefined;
+            this.appProgressRemove ? this.appProgressRemove() : undefined;
+        },
+        methods  : {
+            activateRepo() {
+                this.listActive = RepositoriesList.get().length > 1;
+                this.iconsActive = (!!RepositoriesList.get().length)
+            },
+            settings(e) {
+                if (!AppService.isInProgress())
+                {
+                    SettingsMenuService.openMenu(e).catch(e => console.log(e));
+                }
+            },
+            list(e) {
+                if (!AppService.isInProgress())
+                {
+                    SettingsMenuService.openList(e).catch(e => console.log(e));
+                }
+            }
         }
     }
 </script>
@@ -34,6 +64,7 @@
         box-shadow: 0px 0px 8px 0px #d0d0d0;
         background-image: linear-gradient(to top, #E6E6E6 40%, #F2F2F2 100%);
         z-index: 10;
+        min-height: 30px;
     }
 
     .footer-left {

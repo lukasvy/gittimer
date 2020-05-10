@@ -3,9 +3,11 @@ const {sandbox, clock} = require('~/test/TestHelper').utils;
 export const branches = {
     branches: {
         'test' : {
+            name : 'test',
             current: true
         },
         'test2': {
+            name : 'test2',
             current: false
         },
     },
