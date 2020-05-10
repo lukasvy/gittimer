@@ -1,7 +1,6 @@
 import {Subscription} from "~/src/services/Observable";
 import {KeyboardListener} from "~/src/services/KeyboardListener";
 import {RepositoriesList} from "@/services/RepositoriesList";
-import {AppService} from "@/services/AppService";
 import _ from 'lodash';
 
 let search = [];
@@ -14,12 +13,7 @@ reloadChange.trigger = _.debounce(reloadChange.trigger, 500);
 
 RepositoriesList.onDataRefresh(clear);
 
-// AppService.inProgress(clear);
-
 const listener = (event) => {
-    // if (AppService.isInProgress()) {
-    //     return;
-    // }
     reloadChange.trigger.cancel();
     if (event.key === 'Backspace')
     {
